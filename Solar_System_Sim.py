@@ -1,10 +1,22 @@
+#Fully Made by Evyvaan, with a little help from the internet for the trails, physics and data, but it works so be it
+#Project started on 17 March 2025
+
 import pygame
+pygame.init()
 import math
-import keyboard
 
 WIDTH, HEIGHT = 1350, 650
+
 BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+RED = (255, 0, 0)
+CYAN = (0, 255, 255)
+BLUE = (0, 0, 255)
+GREY = (128, 128, 128)
+ORANGE = (255, 165, 0)
+YELLOW = (255, 255, 0)
 S_YELLOW = (255, 223, 34)
+
 CenterPosx = (WIDTH/2)
 CenterPosy = (HEIGHT/2)
 
@@ -12,12 +24,15 @@ AU = 1.496e11  # Astronomical Unit in meters
 G = 6.67430e-11 # Gravitational constant
 SCALE1 = 250/AU # Scale for rendering planets
 
+bodies = []
+TRAIL_LENGTH = 500
 
-
-
-pygame.init()
+pygame.display.set_caption("Solar System Simulation")
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
+def removeFromList(item):
+    if item in bodies:
+        bodies.remove(item)
 
 def clamp(n, min, max):
     if n < min:
@@ -26,45 +41,69 @@ def clamp(n, min, max):
         return int(max)
     else:
         return int(n)
+    
+def NewRadii(R1, R2):
+    FinalRadii = math.pow(R1**3 + R2**3, 1/3)
+    return FinalRadii
 
 class Body:
     def __init__(self, name, mass, radius, color, posX, posY):
         self.name = name
         self.mass = mass
         
+        self.trail = []
         self.radius = radius
         self.color = color
         self.posX = float(posX)
         self.posY = float(posY)
         self.velX = 0
         self.velY = 0
+        self.exists = True
+        self.counter = 0
+        self.lastposX = None
+        self.lastposY = None
+
+
+    def addToList(item):
+        if item.counter == 0:
+            bodies.append(item)
+            item.counter = 1
         
-        
-        
+
     def render(self):
+        if self.exists == True: 
         # Convert position (meters → pixels)
-        x = self.posX * SCALE1 + WIDTH / 2
-        y = self.posY * SCALE1 + HEIGHT / 2
+            x = self.posX * SCALE1 + WIDTH / 2
+            y = self.posY * SCALE1 + HEIGHT / 2
 
-        # DO NOT modify self.radius
-        radius = self.radius * SCALE1
-        radius = radius * 10
+            # DO NOT modify self.radius
+            radius = self.radius * SCALE1
+            radius = radius * 10
 
-        # Safety checks
-        if math.isnan(radius) or math.isinf(radius):
-            return
+            # Safety checks
+            if math.isnan(radius) or math.isinf(radius):
+                return
 
-        if radius <= 0:
-            return
-        
+            if radius <= 0:
+                return
+            
 
-        pygame.draw.circle(
-            screen,
-            self.color,
-            (int(x), int(y)),
-            int(clamp(radius, 2, 200))
-        )
-# SIIIIIXXXXX SEVEEEEEENNNNNN
+            pygame.draw.circle(
+                screen,
+                self.color,
+                (int(x), int(y)),
+                int(clamp(radius, 5, 200))
+            )
+            
+            
+            #ngl, this is the only ai generated thing cuz i had no idea how to do trails, and it works pretty well thoso be it
+            self.trail.append((int(x), int(y)))
+            if len(self.trail) > TRAIL_LENGTH:       
+                self.trail.pop(0)
+
+            for a, b in zip(self.trail, self.trail[1:]):
+                pygame.draw.aaline(screen, self.color, a, b, 2)
+
 
 
     def gravitationalAttraction(self, other):
@@ -86,9 +125,8 @@ class Body:
         forceY = math.sin(theta) * forceAttraction
         return forceX, forceY
     
-    def updatePosition(self, bodies):
-        if not keyboard.is_pressed('space'):
-            
+    def updatePosition(self):
+        if self.exists == True:
             totalForceX = 0
             totalForceY = 0
             for body in bodies:
@@ -108,29 +146,76 @@ class Body:
 
             self.posX += self.velX * dt
             self.posY += self.velY * dt
-    
-    
-    def Simulate(self, bodies):
-        self.updatePosition(bodies)
+
+    def merge(self, CollidedBody):
+        if CollidedBody.mass < self.mass:
+            self.mass += CollidedBody.mass
+            self.radius = NewRadii(self.radius, CollidedBody.radius)
+            CollidedBody.exists = False
+            removeFromList(CollidedBody)
+            self.velX = (self.velX * self.mass + CollidedBody.velX * CollidedBody.mass) / self.mass
+            self.velY = (self.velY * self.mass + CollidedBody.velY * CollidedBody.mass) / self.mass
+
+
+    def collideAndMerge(self):
+        if self.exists == True:
+            
+            for body in bodies:
+                if body.name != self.name:
+                    other_posX = body.posX
+                    other_posY = body.posY
+                    distanceToOtherX= other_posX - self.posX
+                    distanceToOtherY= other_posY - self.posY
+                    
+                    Sradius = self.radius * SCALE1 * 10
+                    bradius = body.radius * SCALE1 * 10
+                    
+                    sphereHit = Sradius + bradius
+                    
+                    distance1 = math.sqrt(distanceToOtherX**2 + distanceToOtherY**2) * SCALE1 * 10
+                    
+                    
+                    if distance1 < sphereHit:
+                        self.merge(body)
+                        # print(f"{self.name} collided with {body.name}!")
+                        # print(bodies)
+
+    def trail(self, lastpos, currentpos):
+        pygame.draw.line(screen, self.color, lastpos, currentpos, 1)
+
+    def Simulate(self, paused=False):
+        self.addToList()
+        if not paused and self.exists == True:
+            self.collideAndMerge()
+            self.updatePosition()
+            
         self.render()
-    
 
 
-def PsuedoSolarSystem():
-    Sun.Simulate(bodies)
-    Earth.Simulate(bodies)
-    Mars.Simulate(bodies)
-    Mercury.Simulate(bodies)
-    Venus.Simulate(bodies)
-    Jupiter.Simulate(bodies)
+
+def PsuedoSolarSystem(paused=False):
+    Sun.Simulate(paused)
+    Earth.Simulate(paused)
+    Mars.Simulate(paused)
+    Mercury.Simulate(paused)
+    Venus.Simulate(paused)
+    Jupiter.Simulate(paused)
 
 
-def BinaryStarSystem():
-    StarB.velY = 40000
-    StarA.Simulate(bodies2)
-    StarB.Simulate(bodies2)
-    X1Planet.Simulate(bodies2)
-    
+def BinaryStarSystem(paused=False):
+    StarA.Simulate(paused)
+    StarB.Simulate(paused)
+    X1Planet.Simulate(paused)
+
+
+def testSystem(paused=False):
+    bodyA.Simulate(paused)
+    bodyB.Simulate(paused)
+
+
+def elipticalOrbitSystem(paused=False):
+    Star1.Simulate(paused)
+    bodyC.Simulate(paused)
 
 def main(): 
     running = True
@@ -141,39 +226,48 @@ def main():
 
         screen.fill(BLACK)
         
+        paused = pygame.key.get_pressed()[pygame.K_SPACE]  # pause while holding space
+        
         #Stuff happens here
         
-        PsuedoSolarSystem()
-        # BinaryStarSystem()   
+        # PsuedoSolarSystem(paused)
+        # BinaryStarSystem(paused)
+        # testSystem(paused)
+        elipticalOrbitSystem(paused)
         
         # print(math.sqrt(Earth.posX**2 + Earth.posY**2))
-        pygame.display.set_caption("Solar System Simulation")
         pygame.display.flip()
+    
+    pygame.quit()
 
 
 
 #Some cool bodies with actual real data
 Sun = Body("Sun", 1.9891e30, 696340e3, S_YELLOW, 0, 0)
-Earth = Body("Earth", 5.972e24, 6371e3, (0, 0, 255), AU, 0)
+Earth = Body("Earth", 5.972e24, 6371e3, BLUE, AU, 0)
 Earth.velY = -29780
-Mars = Body("Mars", 6.39e23, 3389.5e3, (255, 0, 0), 1.524 * AU, 0)
+Mars = Body("Mars", 6.39e23, 3389.5e3, RED, 1.524 * AU, 0)
 Mars.velY = -24070
-Mercury = Body("Mercury", 3.285e23, 2439.7e3, (128, 128, 128), 0.387 * AU, 0)
+Mercury = Body("Mercury", 3.285e23, 2439.7e3, GREY, 0.387 * AU, 0)
 Mercury.velY = -47360
-Venus = Body("Venus", 4.867e24, 6051.8e3, (255, 165, 0), 0.723 * AU, 0)
+Venus = Body("Venus", 4.867e24, 6051.8e3, ORANGE, 0.723 * AU, 0)
 Venus.velY = -35020
-Jupiter = Body("Jupiter", 1.898e27, 69911e3, (255, 215, 0), 5.204 * AU, 0)
+Jupiter = Body("Jupiter", 1.898e27, 69911e3, YELLOW, 5.204 * AU, 0)
 Jupiter.velY = -13070
 
 #Not so real data, but still fun to watch :D
-StarA = Body("StarA", 2e30, 700000e3, (255, 255, 255), -0.2 * AU, -AU*1.2)
-StarB = Body("StarB", 2e30, 700000e3, (255, 255, 255), 0.2 * AU, -AU*1.2)
-X1Planet = Body("X1Planet", 5e26, 70005e3, (0, 255, 255), AU, 0)
+StarA = Body("StarA", 2e30, 700000e3, YELLOW, AU * 2, -0.2 * AU)
+StarB = Body("StarB", 2e30, 700000e3, WHITE, AU * 2, 0.2*AU)
+X1Planet = Body("X1Planet", 5e26, 70005e3, CYAN, AU * 2, AU)
+StarB.velX = -40000
+X1Planet.velY = -20000
 
+bodyA = Body("BodyA", 1e30, 5000e5, RED, -AU, 0)
+bodyB = Body("BodyB", 1e5, 5000e5, GREY, AU, 0)
 
-#Lists of bodies per simulation(or solar systems idk)
-bodies = [Sun, Earth, Mars, Mercury, Venus, Jupiter]
-bodies2 = [StarA, StarB, X1Planet]
+Star1 = Body("Star1", 1e30, 5000e5, RED, -AU*0.5, 0)
+bodyC = Body("BodyC", 1e26, 5000e5, GREY, AU*0.5, 0)
+bodyC.velY = -15000
 
 
 

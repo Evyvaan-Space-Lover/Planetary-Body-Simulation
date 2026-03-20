@@ -62,6 +62,7 @@ class Body:
         self.counter = 0
         self.lastposX = None
         self.lastposY = None
+        self.CelestialBody = True
 
 
     def addToList(item):
@@ -72,9 +73,9 @@ class Body:
 
     def render(self):
         if self.exists == True: 
-        # Convert position (meters → pixels)
-            x = self.posX * SCALE1 + WIDTH / 2
-            y = self.posY * SCALE1 + HEIGHT / 2
+        # Converting position (meters to pixels)
+            x = self.posX * SCALE1 + CenterPosx
+            y = self.posY * SCALE1 + CenterPosy
 
             # DO NOT modify self.radius
             radius = self.radius * SCALE1
@@ -86,21 +87,26 @@ class Body:
 
             if radius <= 0:
                 return
+
+            if math.isnan(x) or math.isinf(x) or math.isnan(y) or math.isinf(y):
+                return
+
+            # ngl, this is the only thing that i blatantly stole from the INTERNET cuz i had no idea how to do trails, and it works pretty well
+            self.trail.append((int(x), int(y)))
+            if len(self.trail) > TRAIL_LENGTH and not pygame.key.get_pressed()[pygame.K_SPACE]:
+                self.trail.pop(0)
             
+            if pygame.key.get_pressed()[pygame.K_w] or pygame.key.get_pressed()[pygame.K_s] or pygame.key.get_pressed()[pygame.K_r]: # dont make trail wihile zooming in or out bruh
+                self.trail.clear()
+
 
             pygame.draw.circle(
                 screen,
                 self.color,
                 (int(x), int(y)),
-                int(clamp(radius, 5, 200))
+                int(clamp(radius, 3, 2000))
             )
             
-            
-            #ngl, this is the only ai generated thing cuz i had no idea how to do trails, and it works pretty well thoso be it
-            self.trail.append((int(x), int(y)))
-            if len(self.trail) > TRAIL_LENGTH:       
-                self.trail.pop(0)
-
             for a, b in zip(self.trail, self.trail[1:]):
                 pygame.draw.aaline(screen, self.color, a, b, 2)
 
@@ -113,7 +119,7 @@ class Body:
         distanceToOtherX= other_posX - self.posX
         distanceToOtherY= other_posY - self.posY
         
-        distance = math.sqrt(distanceToOtherX**2 + distanceToOtherY**2)
+        distance = math.hypot(distanceToOtherX, distanceToOtherY)
         
         if distance == 0:
             return 0, 0
@@ -167,12 +173,12 @@ class Body:
                     distanceToOtherX= other_posX - self.posX
                     distanceToOtherY= other_posY - self.posY
                     
-                    Sradius = self.radius * SCALE1 * 10
-                    bradius = body.radius * SCALE1 * 10
+                    Sradius = self.radius
+                    bradius = body.radius
                     
-                    sphereHit = Sradius + bradius
+                    sphereHit = Sradius + bradius 
                     
-                    distance1 = math.sqrt(distanceToOtherX**2 + distanceToOtherY**2) * SCALE1 * 10
+                    distance1 = math.hypot(distanceToOtherY, distanceToOtherX)
                     
                     
                     if distance1 < sphereHit:
@@ -186,9 +192,8 @@ class Body:
     def Simulate(self, paused=False):
         self.addToList()
         if not paused and self.exists == True:
-            self.collideAndMerge()
             self.updatePosition()
-            
+            self.collideAndMerge()
         self.render()
 
 
@@ -218,23 +223,33 @@ def elipticalOrbitSystem(paused=False):
     bodyC.Simulate(paused)
 
 def main(): 
+    global SCALE1
     running = True
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-
         screen.fill(BLACK)
+        Keys= pygame.key.get_pressed()
         
-        paused = pygame.key.get_pressed()[pygame.K_SPACE]  # pause while holding space
         
         #Stuff happens here
         
-        # PsuedoSolarSystem(paused)
-        # BinaryStarSystem(paused)
-        # testSystem(paused)
-        elipticalOrbitSystem(paused)
+        # PsuedoSolarSystem(Keys[pygame.K_SPACE])
+        # BinaryStarSystem(Keys[pygame.K_SPACE])
+        testSystem(Keys[pygame.K_SPACE])
+        # elipticalOrbitSystem(Keys[pygame.K_SPACE])
+
+        # SagBlackhole.Simulate(Keys[pygame.K_SPACE])
         
+        
+        
+        if Keys[pygame.K_w]:
+            SCALE1 *= 1.001
+        if Keys[pygame.K_s]:
+            SCALE1 /= 1.001
+        if Keys[pygame.K_r]:
+            SCALE1 = 250/AU
         # print(math.sqrt(Earth.posX**2 + Earth.posY**2))
         pygame.display.flip()
     
@@ -256,18 +271,19 @@ Jupiter = Body("Jupiter", 1.898e27, 69911e3, YELLOW, 5.204 * AU, 0)
 Jupiter.velY = -13070
 
 #Not so real data, but still fun to watch :D
-StarA = Body("StarA", 2e30, 700000e3, YELLOW, AU * 2, -0.2 * AU)
-StarB = Body("StarB", 2e30, 700000e3, WHITE, AU * 2, 0.2*AU)
+StarA = Body("StarA", 2e30, 700000e3, YELLOW, AU * 2.3, -0.4 * AU)
+StarB = Body("StarB", 2e30, 700000e3, WHITE, AU * 2.3, 0.4 * AU)
 X1Planet = Body("X1Planet", 5e26, 70005e3, CYAN, AU * 2, AU)
+StarA.velX = -10000 
 StarB.velX = -40000
 X1Planet.velY = -20000
+bodyA = Body("BodyA", 1e30, 5000e5, RED, -AU*0.2, 0)
+bodyB = Body("BodyB", 1e20, 5000e5, GREY, AU*0.2, 0)
+Star1 = Body("Star1", 10e30, 10000e5, RED, -AU, 0)
+bodyC = Body("BodyC", 1e24, 5000e2, GREY, AU*0.6, 0)
+bodyC.velY = -18000
 
-bodyA = Body("BodyA", 1e30, 5000e5, RED, -AU, 0)
-bodyB = Body("BodyB", 1e5, 5000e5, GREY, AU, 0)
-
-Star1 = Body("Star1", 1e30, 5000e5, RED, -AU*0.5, 0)
-bodyC = Body("BodyC", 1e26, 5000e5, GREY, AU*0.5, 0)
-bodyC.velY = -15000
+SagBlackhole = Body("SagBlackhole", 4.3e6 * Sun.mass, 31.6 * Sun.radius, GREY, 0, 0) #Sagittarius A* is the supermassive black hole at the center of our galaxy, with a mass of about 4.3 million times that of the Sun and an estimated radius of around 31.6 times the Sun's radius.
 
 
 

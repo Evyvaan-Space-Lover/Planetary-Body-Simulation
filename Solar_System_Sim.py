@@ -46,6 +46,26 @@ def NewRadii(R1, R2):
     FinalRadii = math.pow(R1**3 + R2**3, 1/3)
     return FinalRadii
 
+def CamControls():
+    global CenterPosx
+    global CenterPosy
+    global SCALE1
+    Keys= pygame.key.get_pressed()
+    if Keys[pygame.K_t]: # this controller sucks bruh
+        CenterPosy *= 1.0015
+    if Keys[pygame.K_g]:
+        CenterPosy /= 1.0015
+    if Keys[pygame.K_f]:
+        CenterPosx *= 1.0015
+    if Keys[pygame.K_h]:
+        CenterPosx /= 1.0015
+    if Keys[pygame.K_w]:
+        SCALE1 *= 1.001
+    if Keys[pygame.K_s]:
+        SCALE1 /= 1.001
+    if Keys[pygame.K_r]:
+        SCALE1 = 250/AU
+
 class Body:
     def __init__(self, name, mass, radius, color, posX, posY):
         self.name = name
@@ -60,10 +80,11 @@ class Body:
         self.velY = 0
         self.exists = True
         self.counter = 0
+        self.prevPosX = None
+        self.prevPosY = None
         self.lastposX = None
         self.lastposY = None
         self.CelestialBody = True
-
 
     def addToList(item):
         if item.counter == 0:
@@ -96,15 +117,15 @@ class Body:
             if len(self.trail) > TRAIL_LENGTH and not pygame.key.get_pressed()[pygame.K_SPACE]:
                 self.trail.pop(0)
             
-            if pygame.key.get_pressed()[pygame.K_w] or pygame.key.get_pressed()[pygame.K_s] or pygame.key.get_pressed()[pygame.K_r]: # dont make trail wihile zooming in or out bruh
+            if pygame.key.get_pressed()[pygame.K_w] or pygame.key.get_pressed()[pygame.K_s] or pygame.key.get_pressed()[pygame.K_r] or pygame.key.get_pressed()[pygame.K_t] or pygame.key.get_pressed()[pygame.K_g] or pygame.key.get_pressed()[pygame.K_f] or pygame.key.get_pressed()[pygame.K_h]: # dont make trail wihile zooming in or out and movng bruh
                 self.trail.clear()
-
-
+            
+            
             pygame.draw.circle(
                 screen,
                 self.color,
                 (int(x), int(y)),
-                int(clamp(radius, 3, 2000))
+                int(clamp(radius, 3, 1000))
             )
             
             for a, b in zip(self.trail, self.trail[1:]):
@@ -147,11 +168,22 @@ class Body:
             
             dt = 60 * 60 # Time step
             
-            self.velX += ax * dt
-            self.velY += ay * dt
-
-            self.posX += self.velX * dt
-            self.posY += self.velY * dt
+            # Initialize previous position for Verlet integration if not set
+            if self.prevPosX is None:
+                self.prevPosX = self.posX - self.velX * dt
+                self.prevPosY = self.posY - self.velY * dt
+            
+            #Verlet integration for better accuracy and stability, especially with larger time steps
+            newPosX = 2 * self.posX - self.prevPosX + ax * dt ** 2
+            newPosY = 2 * self.posY - self.prevPosY + ay * dt ** 2
+            
+            self.prevPosX = self.posX
+            self.prevPosY = self.posY
+            self.posX = newPosX
+            self.posY = newPosY
+            
+            
+            
 
     def merge(self, CollidedBody):
         if CollidedBody.mass < self.mass:
@@ -223,7 +255,10 @@ def elipticalOrbitSystem(paused=False):
     bodyC.Simulate(paused)
 
 def main(): 
-    global SCALE1
+    global SCALE1 # I have no idea why i have to do this but if i dont do this, it falls apart lmao
+    global CenterPosx
+    global CenterPosy
+    
     running = True
     while running:
         for event in pygame.event.get():
@@ -231,25 +266,16 @@ def main():
                 running = False
         screen.fill(BLACK)
         Keys= pygame.key.get_pressed()
+        CamControls()
         
         
         #Stuff happens here
         
         # PsuedoSolarSystem(Keys[pygame.K_SPACE])
         # BinaryStarSystem(Keys[pygame.K_SPACE])
-        testSystem(Keys[pygame.K_SPACE])
-        # elipticalOrbitSystem(Keys[pygame.K_SPACE])
-
-        # SagBlackhole.Simulate(Keys[pygame.K_SPACE])
+        # testSystem(Keys[pygame.K_SPACE])
+        elipticalOrbitSystem(Keys[pygame.K_SPACE])
         
-        
-        
-        if Keys[pygame.K_w]:
-            SCALE1 *= 1.001
-        if Keys[pygame.K_s]:
-            SCALE1 /= 1.001
-        if Keys[pygame.K_r]:
-            SCALE1 = 250/AU
         # print(math.sqrt(Earth.posX**2 + Earth.posY**2))
         pygame.display.flip()
     

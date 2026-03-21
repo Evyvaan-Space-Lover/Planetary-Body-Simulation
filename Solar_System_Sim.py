@@ -26,9 +26,12 @@ SCALE1 = 250/AU # Scale for rendering planets
 
 bodies = []
 TRAIL_LENGTH = 500
+SYSTEM = None
 
 pygame.display.set_caption("Solar System Simulation")
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
+
+
 
 def removeFromList(item):
     if item in bodies:
@@ -85,16 +88,18 @@ class Body:
         self.lastposX = None
         self.lastposY = None
         self.CelestialBody = True
+        self.CenterPosX= None
+        self.CenterPosY = None
 
     def addToList(item):
         if item.counter == 0:
             bodies.append(item)
             item.counter = 1
-        
+
 
     def render(self):
-        if self.exists == True: 
-        # Converting position (meters to pixels)
+        if self.exists == True:
+            # Converting position (meters to pixels)
             x = self.posX * SCALE1 + CenterPosx
             y = self.posY * SCALE1 + CenterPosy
 
@@ -103,13 +108,10 @@ class Body:
             radius = radius * 10
 
             # Safety checks
-            if math.isnan(radius) or math.isinf(radius):
+            if not math.isfinite(radius) or radius <= 0:
                 return
 
-            if radius <= 0:
-                return
-
-            if math.isnan(x) or math.isinf(x) or math.isnan(y) or math.isinf(y):
+            if not (math.isfinite(x) and math.isfinite(y)):
                 return
 
             # ngl, this is the only thing that i blatantly stole from the INTERNET cuz i had no idea how to do trails, and it works pretty well
@@ -125,7 +127,7 @@ class Body:
                 screen,
                 self.color,
                 (int(x), int(y)),
-                int(clamp(radius, 3, 1000))
+                int(clamp(radius, 5, 200))
             )
             
             for a, b in zip(self.trail, self.trail[1:]):
@@ -161,7 +163,6 @@ class Body:
                     forceX, forceY = self.gravitationalAttraction(body)
                     totalForceX += forceX
                     totalForceY += forceY
-                    
                     
             ax = totalForceX / self.mass
             ay = totalForceY / self.mass
@@ -212,7 +213,6 @@ class Body:
                     
                     distance1 = math.hypot(distanceToOtherY, distanceToOtherX)
                     
-                    
                     if distance1 < sphereHit:
                         self.merge(body)
                         # print(f"{self.name} collided with {body.name}!")
@@ -230,8 +230,9 @@ class Body:
 
 
 
-def PsuedoSolarSystem(paused=False):
+def SolarSystem(paused=False):
     Sun.Simulate(paused)
+    # Moon.Simulate(paused)
     Earth.Simulate(paused)
     Mars.Simulate(paused)
     Mercury.Simulate(paused)
@@ -244,22 +245,42 @@ def BinaryStarSystem(paused=False):
     StarB.Simulate(paused)
     X1Planet.Simulate(paused)
 
-
-def testSystem(paused=False):
-    bodyA.Simulate(paused)
-    bodyB.Simulate(paused)
-
-
 def elipticalOrbitSystem(paused=False):
     Star1.Simulate(paused)
     bodyC.Simulate(paused)
+    
+def LagrangianPointDemoSystem(paused=False):
+    pygame.draw.line(screen, WHITE, (Earth.posX * SCALE1 + CenterPosx, Earth.posY * SCALE1 + CenterPosy), (Sun.posX * SCALE1 + CenterPosx, Sun.posY* SCALE1 + CenterPosy), 1)
+    pygame.draw.line(screen, WHITE, (Earth.posX * SCALE1 + CenterPosx, Earth.posY * SCALE1 + CenterPosy), (LagrangePoint4Asteroid.posX * SCALE1 + CenterPosx, LagrangePoint4Asteroid.posY * SCALE1 + CenterPosy), 1)
+    pygame.draw.line(screen, WHITE, (Sun.posX * SCALE1 + CenterPosx, Sun.posY * SCALE1 + CenterPosy), (LagrangePoint4Asteroid.posX * SCALE1 + CenterPosx, LagrangePoint4Asteroid.posY * SCALE1 + CenterPosy), 1)
+    
+    pygame.draw.line(screen, WHITE, (Earth.posX * SCALE1 + CenterPosx, Earth.posY * SCALE1 + CenterPosy), (LagrangePoint5Asteroid.posX * SCALE1 + CenterPosx, LagrangePoint5Asteroid.posY * SCALE1 + CenterPosy), 1)
+    pygame.draw.line(screen, WHITE, (Sun.posX * SCALE1 + CenterPosx, Sun.posY * SCALE1 + CenterPosy), (LagrangePoint5Asteroid.posX * SCALE1 + CenterPosx, LagrangePoint5Asteroid.posY * SCALE1 + CenterPosy), 1)
+    pygame.draw.line(screen, WHITE, (LagrangePoint4Asteroid.posX * SCALE1 + CenterPosx, LagrangePoint4Asteroid.posY * SCALE1 + CenterPosy), (LagrangePoint5Asteroid.posX * SCALE1 + CenterPosx, LagrangePoint5Asteroid.posY* SCALE1 + CenterPosy), 1)
+    Sun.Simulate(paused)
+    Earth.Simulate(paused)
+    LagrangePoint4Asteroid.Simulate(paused)
+    LagrangePoint5Asteroid.Simulate(paused)
 
-def main(): 
+
+def Sim(System):
+    Keys= pygame.key.get_pressed()
+    if System == "SolarSystem":
+        SolarSystem(Keys[pygame.K_SPACE])
+    if System == "BinarySystem":
+        BinaryStarSystem(Keys[pygame.K_SPACE])
+    if System =="ElipticalSystem":
+        elipticalOrbitSystem(Keys[pygame.K_SPACE])
+    if System == "L4 and L5":
+        LagrangianPointDemoSystem(Keys[pygame.K_SPACE])
+
+def mainSIM(System): 
     global SCALE1 # I have no idea why i have to do this but if i dont do this, it falls apart lmao
     global CenterPosx
     global CenterPosy
-    
+    global SYSTEM
     running = True
+    bodies.clear()
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -268,18 +289,12 @@ def main():
         Keys= pygame.key.get_pressed()
         CamControls()
         
-        
-        #Stuff happens here
-        
-        # PsuedoSolarSystem(Keys[pygame.K_SPACE])
-        # BinaryStarSystem(Keys[pygame.K_SPACE])
-        # testSystem(Keys[pygame.K_SPACE])
-        elipticalOrbitSystem(Keys[pygame.K_SPACE])
+        Sim(System)
         
         # print(math.sqrt(Earth.posX**2 + Earth.posY**2))
         pygame.display.flip()
     
-    pygame.quit()
+
 
 
 
@@ -287,6 +302,8 @@ def main():
 Sun = Body("Sun", 1.9891e30, 696340e3, S_YELLOW, 0, 0)
 Earth = Body("Earth", 5.972e24, 6371e3, BLUE, AU, 0)
 Earth.velY = -29780
+Moon = Body("Moon", 7.34767309e22, 1737.4e3, WHITE, 1.0026 * AU, 0)
+Moon.velY = -30780
 Mars = Body("Mars", 6.39e23, 3389.5e3, RED, 1.524 * AU, 0)
 Mars.velY = -24070
 Mercury = Body("Mercury", 3.285e23, 2439.7e3, GREY, 0.387 * AU, 0)
@@ -306,11 +323,51 @@ X1Planet.velY = -20000
 bodyA = Body("BodyA", 1e30, 5000e5, RED, -AU*0.2, 0)
 bodyB = Body("BodyB", 1e20, 5000e5, GREY, AU*0.2, 0)
 Star1 = Body("Star1", 10e30, 10000e5, RED, -AU, 0)
-bodyC = Body("BodyC", 1e24, 5000e2, GREY, AU*0.6, 0)
+bodyC = Body("BodyC", 1e25, 5000e2, GREY, AU*0.6, 0)
 bodyC.velY = -18000
+
+# Demonstrating Lagrangian Points, with an asteroid placed at L4
+L4x = AU * 0.5
+L4y = -AU * math.sqrt(3)/2
+L5y = AU * math.sqrt(3)/2
+LagrangePoint4Asteroid = Body("Asteroid 1", 2e20, 3e3, GREY, L4x, L4y)
+LagrangePoint5Asteroid = Body("Asteroid 2", 2e20, 3e3, GREY, L4x, L5y)
+
+r = math.sqrt(L4x**2 + L4y**2)
+v = math.sqrt(G * Sun.mass / r)
+
+# perpendicular direction
+LagrangePoint4Asteroid.velX = L4y / r * v
+LagrangePoint4Asteroid.velY = -L4x / r * v #negative, as in my sim, its topsy turvy in terms of co-ordinates
+LagrangePoint5Asteroid.velX = -L4y / r * v
+LagrangePoint5Asteroid.velY = -L4x / r * v #negative, as in my sim, its topsy turvy in terms of co-ordinates
 
 SagBlackhole = Body("SagBlackhole", 4.3e6 * Sun.mass, 31.6 * Sun.radius, GREY, 0, 0) #Sagittarius A* is the supermassive black hole at the center of our galaxy, with a mass of about 4.3 million times that of the Sun and an estimated radius of around 31.6 times the Sun's radius.
 
 
+def MAIN():
+    running = True
+    print("========================================EvyvaanSingh========================================")
+    print("\nWelcome To 'Planetary Body Simulation' ! ")
+    print("\n Please Choose the desired system to simulate or enter commands. \n Our Solar System (1) \n Binary Star System (2) \n System in which the the satellite planet follows an Eliptical Path (3) \n Demonstration of simulation of bodies in L4 AND L5 points (4)")
+    while running:
+        choose = input(">>> ")
+        if choose == "1":
+            print("Task Started Successfully! \n Please restart the program to run another simulation or command by entering 'exit'.")
+            mainSIM("SolarSystem")
+        elif choose == "2":
+            print("Task Started Successfully! \n Please restart the program to run another simulation or command by entering 'exit'.")
+            mainSIM("BinarySystem")
+        elif choose == "3":
+            print("Task Started Successfully! \n Please restart the program to run another simulation or command by entering 'exit'.")
+            mainSIM("ElipticalSystem")
+        elif choose == "4":
+            print("Task Started Successfully! \n Please restart the program to run another simulation or command by entering 'exit'.")
+            mainSIM("L4 and L5")
+        elif choose == "exit":
+            running = False
+        else:
+            print("Invalid Command")
 
-main()
+
+MAIN()

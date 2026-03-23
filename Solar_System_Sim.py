@@ -1,3 +1,6 @@
+# "Solar_System_Sim.py" is the old obsolete code, kindly run or make contributions to the "SolarSystemSim.py" only 
+
+
 #Fully Made by Evyvaan, with a little help from the internet for the trails, physics and data, but it works so be it
 #Project started on 17 March 2025
 

@@ -19,8 +19,6 @@ GREY = (128, 128, 128)
 ORANGE = (255, 165, 0)
 YELLOW = (255, 255, 0)
 S_YELLOW = (255, 223, 34)
-PLOTTING = False
-PLTKE = []
 
 CenterPosx = (WIDTH/2)
 CenterPosy = (HEIGHT/2)
@@ -33,15 +31,38 @@ TIMESTEP = 60 * 60
 bodies = []
 TRAIL_LENGTH = 500
 SYSTEM = None
+PLTORNOT = False
+TYPEPLT = None
+TOTAL_PE = []
+TOTAL_KE = []
+TOTAL_E = []
 
+SHOW_TRAIL = True
 SHOW_ENERGY = False
 
 def removeFromList(item):
     if item in bodies:
         bodies.remove(item)
 
-def graphEnergies(data):
-    plt.bar(range(1, len(data) + 1), data)
+def graphVelocity(bodies):
+    plt.figure()
+    for body in bodies:
+        plt.plot(body.VELOCITY, label=f"{body.name} Velocity")
+    
+    plt.title("Velocity vs Time")
+    plt.xlabel("Times Steps")
+    plt.ylabel("Velocity")
+    plt.show()
+
+def graphEnergies(data, data1, data2):
+    plt.figure()
+    plt.plot(data, label="Total Energy Of the System Distribution")
+    plt.plot(data1, label="Total Kinetic Energy of the System Distribution")
+    plt.plot(data2, label="Total Kinetic Energy of the System Distribution")
+    
+    plt.title("Energy vs Time")
+    plt.xlabel("Times Steps")
+    plt.ylabel("Energy (In Joules)")
     plt.show()
 
 def clamp(n, min, max):
@@ -90,6 +111,19 @@ def printASCII():
 ,+==iiiiii+,
 `+=+++;`
 """)
+
+def askPlotter():
+    if input("Do you want to plot some niffty data? (y/n) \n > ").lower() == "y":
+        answer = input("What do you wanna plot? \n Velocities (1) \n Total energy of the system (2) \n > ")
+        if answer == "1":
+            return True, "Velocity"
+        elif answer == "2":
+            return True, "Energy"
+        else:
+            print("Proceeding with No plots")
+            return False, None
+    else:
+        return False, None
 
 def calcVelocity(body):
     vx = (body.posX - body.prevPosX) / TIMESTEP
@@ -159,6 +193,10 @@ class Body:
         self.Asteroid = False
         self.CenterPosX= None
         self.CenterPosY = None
+        
+        self.PLTVELOCITY = False
+        self.VELOCITY = []
+        self.velocity = 0
 
     def addToList(item):
         if item.counter == 0:
@@ -198,9 +236,9 @@ class Body:
                 (int(x), int(y)),
                 int(clamp(radius, 5, 200))
             )
-            
-            for a, b in zip(self.trail, self.trail[1:]):
-                pygame.draw.aaline(screen, self.color, a, b, 2)
+            if SHOW_TRAIL:
+                for a, b in zip(self.trail, self.trail[1:]):
+                    pygame.draw.aaline(screen, self.color, a, b, 2)
 
 
 
@@ -247,13 +285,15 @@ class Body:
             newPosX = 2 * self.posX - self.prevPosX + ax * dt ** 2
             newPosY = 2 * self.posY - self.prevPosY + ay * dt ** 2
             
+            self.velocity = calcVelocity(self)
+            
             self.prevPosX = self.posX
             self.prevPosY = self.posY
             self.posX = newPosX
             self.posY = newPosY
             
-            
-            
+            if self.PLTVELOCITY == True:
+                self.VELOCITY.append(self.velocity)
 
     def merge(self, CollidedBody):
         if CollidedBody.mass < self.mass:
@@ -313,9 +353,6 @@ def SolarSystem(screen, paused=False):
     Saturn.Simulate(paused, screen)
     Uranus.Simulate(paused, screen)
     Neptune.Simulate(paused, screen)
-    
-    
-
 
 def BinaryStarSystem(screen, paused=False):
     StarA.Simulate(paused, screen)
@@ -325,7 +362,7 @@ def BinaryStarSystem(screen, paused=False):
 def elipticalOrbitSystem(screen, paused=False):
     Star1.Simulate(paused, screen)
     bodyC.Simulate(paused, screen)
-    
+
 def LagrangianPointDemoSystem(screen, paused):
     #puased and screen variables are exchanged for some reason. im too exhausted to find why, but it works as it should so i really dont care
     pygame.draw.line(paused, WHITE, (Earth.posX * SCALE1 + CenterPosx, Earth.posY * SCALE1 + CenterPosy), (Sun.posX * SCALE1 + CenterPosx, Sun.posY* SCALE1 + CenterPosy), 1)
@@ -345,6 +382,17 @@ def ThreeBodyChaos(screen, paused=False):
     tbody2.Simulate(paused, screen)
     tbody3.Simulate(paused, screen)
 
+
+def HorseShoeCrabSystem(screen, paused=False):
+    Sun.Simulate(paused, screen)
+    Earth.Simulate(paused, screen)
+    obj.Simulate(paused, screen)
+
+def SlingShot(screen, paused=False):
+    ProbeA.Simulate(paused, screen)
+    BigPlanetForSlingShot.Simulate(paused, screen)
+
+
 def Sim(System, screen):
     Keys= pygame.key.get_pressed()
     if System == "SolarSystem":
@@ -357,12 +405,19 @@ def Sim(System, screen):
         LagrangianPointDemoSystem(Keys[pygame.K_SPACE], screen)
     if System == "ThreeBody":
         ThreeBodyChaos(Keys[pygame.K_SPACE], screen)
+    if System == "HorseShoe":
+        HorseShoeCrabSystem(Keys[pygame.K_SPACE], screen)
+    if System == "SlingShot":
+        SlingShot(Keys[pygame.K_SPACE], screen)
 
 def mainSIM(System): 
     global SCALE1 # I have no idea why i have to do this but if i dont do this, it falls apart lmao
     global CenterPosx
     global CenterPosy
     global SYSTEM
+    global TOTAL_PE
+    global TOTAL_KE
+    global TOTAL_E
     pygame.init()
     SCALE1 = 250/AU
     pygame.display.set_caption("Solar System Simulation")
@@ -380,11 +435,17 @@ def mainSIM(System):
         
         Sim(System, screen)
         if SHOW_ENERGY:
-            print(f"The total energy of the System: {E}, the Kinetic Energy: {KE}, the Potential Energy: {PE}")
+            TOTAL_E.append(E)
+            TOTAL_KE.append(KE)
+            TOTAL_PE.append(PE)
         
         # print(math.sqrt(Earth.posX**2 + Earth.posY**2))
         pygame.display.flip()
     pygame.quit()
+    if SHOW_ENERGY:
+        graphEnergies(TOTAL_E, TOTAL_KE, TOTAL_PE)
+    if PLTORNOT == True and TYPEPLT ==  "Velocity":
+        graphVelocity(b)
 
 
 
@@ -417,11 +478,17 @@ X1Planet = Body("X1Planet", 5e26, 70005e3, CYAN, AU * 2, AU)
 StarA.velX = -10000 
 StarB.velX = -40000
 X1Planet.velY = -20000
-bodyA = Body("BodyA", 1e30, 5000e5, RED, -AU*0.2, 0)
-bodyB = Body("BodyB", 1e20, 5000e5, GREY, AU*0.2, 0)
+
 Star1 = Body("Star1", 10e30, 10000e5, RED, -AU, 0)
 bodyC = Body("BodyC", 1e25, 5000e2, GREY, AU*0.6, 0)
 bodyC.velY = -18000
+
+
+BigPlanetForSlingShot = Body("big planet lmao", 2e31, 69911e4, CYAN, 0, 0)
+BigPlanetForSlingShot.velX = 24000
+ProbeA = Body("BodyC", 1e25, 500e3, GREY, AU*0.6, -AU*0.6)
+ProbeA.velY = 54000
+ProbeA.velX = -54000
 
 x = 15000
 
@@ -434,6 +501,9 @@ tbody1.velY = 2 * x
 tbody3 = Body("Star3", 1e30, 5e8, YELLOW, AU, -AU)
 tbody1.velX = -x
 tbody1.velY = x
+
+obj = Body("HorseShoeCrabOrbitSat", 7e22, 1737.4e3, WHITE, 1.05 * AU, 0 )
+obj.velY = -25000
 
 b = [Sun, Earth, Moon, Mars, Mercury, Venus, Jupiter, Saturn, Neptune]
 
@@ -455,20 +525,35 @@ LagrangePoint5Asteroid.velY = -L4x / r * v #negative, as in my sim, its topsy tu
 
 SagBlackhole = Body("SagBlackhole", 4.3e6 * Sun.mass, 31.6 * Sun.radius, GREY, 0, 0) #Sagittarius A* is the supermassive black hole at the center of our galaxy, with a mass of about 4.3 million times that of the Sun and an estimated radius of around 31.6 times the Sun's radius.
 
+sling=[ProbeA, BigPlanetForSlingShot]
+crab=[Sun, Earth, obj]
+chaos=[tbody1, tbody2, tbody3]
+pointdemo=[Sun, Earth, LagrangePoint4Asteroid, LagrangePoint5Asteroid]
+eliptical=[Star1, bodyC]
+binary=[StarA, StarB, X1Planet]
 
 def MAIN():
     running = True
     global TIMESTEP
     global TRAIL_LENGTH
     global SHOW_ENERGY
+    global PLTORNOT
+    global TYPEPLT
+    global SHOW_TRAIL
     printASCII()
     print("==============================-Evyvaan Singh - 2026-==============================")
     print("\nWelcome To 'Planetary Body Simulation'! ")
-    print("\n \n \nPlease Choose the desired system (By entering the corresponding number) to start the simulation or enter commands. \n You can move around space in the simulation by using the keys 't', 'f', 'g' and 'h'. You can also zoom in and out by using the keys 'w' and 's' respectively. \n \n -Our Solar System (1) \n -Binary Star System (2) \n -System in which the the satellite planet follows an Eliptical Path (3) \n -Demonstration of simulation of bodies in L4 AND L5 points (4)")
+    print("\n \n \nPlease Choose the desired system (By entering the corresponding number) to start the simulation or enter commands. \n You can move around space in the simulation by using the keys 't', 'f', 'g' and 'h'. You can also zoom in and out by using the keys 'w' and 's' respectively. \n \n -Our Solar System (1) \n -Binary Star System (2) \n -System in which the the satellite planet follows an Eliptical Path (3) \n -Demonstration of simulation of bodies in L4 AND L5 points (4) \n -Three body chaotic system (5) \n -A system in which a satellite follows a 'Horseshoe' shaped orbit (6)")
     while running:
         choose = input(">>> ")
         if choose == "1":
-            print("Task Started Successfully! \n You can leave the program by entering 'exit'.")
+            PLTORNOT, TYPEPLT = askPlotter()
+            if PLTORNOT:
+                if TYPEPLT == "Velocity":
+                    print("trying")
+                if TYPEPLT == "Energy":
+                    SHOW_ENERGY = True
+            print("Task Started Successfully! \nYou can leave the program by entering 'exit'.")
             print("\nNow simulating, the Solar System.")
             mainSIM("SolarSystem")
             print("It is recommended to restart the entire program to run another simulation. (You can restart by typing 'restart') \n====Simulation Ended====")
@@ -492,6 +577,13 @@ def MAIN():
             print("Now simulating, a three body chaptic system. Best with low timestep.")
             mainSIM("ThreeBody")
             print("It is recommended to restart the entire program to run another simulation. (You can restart by typing 'restart') \n ====Simulation Ended====")
+        elif choose == "6":
+            print("Task Started Successfully! \n You can leave the program by entering 'exit'.")
+            print("Now simulating, a three body chaptic system. Best with low timestep.")
+            mainSIM("HorseShoe")
+            print("It is recommended to restart the entire program to run another simulation. (You can restart by typing 'restart') \n ====Simulation Ended====")
+        elif choose == "7":
+            mainSIM("SlingShot")
         elif choose == "exit" or choose == "quit":
             running = False
             print("'Bye'  -  Evyvaan said calmly")
@@ -506,13 +598,17 @@ def MAIN():
             TRAIL_LENGTH = int(input("Trail Lenght (Default is 500) = "))
             print(f"The Trail Lenght is {TRAIL_LENGTH}. Note that the bigger trails may cause performance issues")
         elif choose.lower() == "show":
-            print(f"========-Variables and Constants in the simulation-======== \n 1 Astronomical Unit (Distance from the Sun to Earth): {AU} \n Gravitational Constant: {G} \n Default Scale: {SCALE1} \n Current Timestep: {TIMESTEP} \n Current Trail Lenght: {TRAIL_LENGTH} \n Show properties of all the planets in the solar system? (y/n)")
-            if input("  > ").lower() == "y" :
+            print(f"========-Variables and Constants in the simulation-======== \n 1 Astronomical Unit (Distance from the Sun to Earth): {AU} \n Gravitational Constant: {G} \n Default Scale: {SCALE1} \n Current Timestep: {TIMESTEP} \n Current Trail Lenght: {TRAIL_LENGTH} \n Show Trails: {SHOW_TRAIL} \n Show properties of all the planets in the solar system? (y/n)")
+            if input("  >  ").lower() == "y" :
                 for body in b:
                     print(f"====-{body.name}-==== \n Mass: {body.mass} kg \n Radius: {body.radius/1000} km \n Velocity: {math.hypot(body.velX, body.velY)/1000} km/s")
-        elif choose.lower() == "show-total-energy":
-            print("The following simulation will have their total energy printed.")
-            SHOW_ENERGY = True
+        elif choose.lower() == "set-trail":
+            print("Toggling trail")
+            if SHOW_TRAIL == True:
+                SHOW_TRAIL = False
+            else:
+                SHOW_TRAIL = True
+            print(f"Trail is now set to {SHOW_TRAIL}")
         elif choose.lower() == "restart":
             print("Restarting... ")
             python = sys.executable

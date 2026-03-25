@@ -78,8 +78,6 @@ set-trail_length → Adjust trail length
 
 set-trail → Toggle trails on/off 
 
-
-
 ---
 
 ##  Data Visualization
@@ -103,7 +101,7 @@ Install dependencies
 
 pip install pygame matplotlib
 
-Run the simulation
+### Run the simulation
 
 python SolarSystemSim.py
 

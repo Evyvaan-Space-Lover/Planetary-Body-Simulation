@@ -7,15 +7,15 @@ This project models planetary motion, multi-body systems, and orbital mechanics 
 
 ##  Features
 
-- 🌍 Realistic planetary motion (approximate physical scaling)
-- ⭐ Binary star system with orbiting planet
-- 🔺 Three-body chaotic system
-- 🌀 Gravitational slingshot simulation
-- 🧭 Lagrange points (L4 & L5)
-- 🐚 Horseshoe orbit system
-- 📈 Energy and velocity plotting (matplotlib)
-- ✨ Smooth orbital trails
-- 🎥 Camera movement and zoom
+-  Realistic planetary motion (approximate physical scaling)
+-  Binary star system with orbiting planet
+-  Three-body chaotic system
+-  Gravitational slingshot simulation
+-  Lagrange points (L4 & L5)
+-  Horseshoe orbit system
+-  Energy and velocity plotting (matplotlib)
+-  Smooth orbital trails
+-  Camera movement and zoom
 
 ---
 

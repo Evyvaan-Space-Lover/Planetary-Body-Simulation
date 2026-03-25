@@ -32,7 +32,7 @@ This project models planetary motion, multi-body systems, and orbital mechanics 
 
 ##  Controls (Simulation Window)
 
-Key| Action
+### Key| Action
 
 SPACE| Pause / Resume simulation
 

@@ -56,14 +56,20 @@ R| Reset zoom
 ##  General Commands
 
 exit / quit → Close program 
+-
 restart → Restart simulation 
+-
 show → Display system parameters 
+-
 
 ##  Settings
 
 set-timestep → Change simulation timestep 
+-
 set-trail_length → Adjust trail length 
+-
 set-trail → Toggle trails on/off 
+-
 
 ---
 

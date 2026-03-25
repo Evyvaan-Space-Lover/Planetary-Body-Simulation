@@ -33,10 +33,15 @@ This project models planetary motion, multi-body systems, and orbital mechanics 
 ##  Controls (Simulation Window)
 
 Key| Action
+
 SPACE| Pause / Resume simulation
+
 W / S| Zoom in / out
+
 T / G| Move camera up / down
+
 F / H| Move camera left / right
+
 R| Reset zoom
 
 ---
@@ -53,23 +58,27 @@ R| Reset zoom
 6 → Horseshoe Orbit 
 7 → Slingshot Simulation 
 
-##  General Commands
+###  General Commands
 
 exit / quit → Close program 
--
-restart → Restart simulation 
--
-show → Display system parameters 
--
 
-##  Settings
+
+restart → Restart simulation 
+
+
+show → Display system parameters 
+
+###  Settings
 
 set-timestep → Change simulation timestep 
--
+
+
 set-trail_length → Adjust trail length 
--
+
+
 set-trail → Toggle trails on/off 
--
+
+
 
 ---
 

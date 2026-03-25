@@ -7,6 +7,7 @@ import math
 import matplotlib.pyplot as plt
 import os
 import sys
+import subprocess
 
 WIDTH, HEIGHT = 1350, 650
 
@@ -135,13 +136,14 @@ def calcVelocity(body):
     vy =(body. posY - body.prevPosY) / TIMESTEP
     
     velocity = math.hypot(vx, vy)
-    return velocity
+    return vx, vy, velocity
 
 
 def calcEnergy():
     KE = 0
     for b in bodies:
-        KE += 1/2 * b.mass * calcVelocity(b)**2
+        vx, vy, velocity = calcVelocity(b)
+        KE += 1/2 * b.mass * velocity**2
     
     PE = 0
     for i in range(len(bodies)):
@@ -149,7 +151,8 @@ def calcEnergy():
             dx = bodies[j].posX - bodies[i].posX
             dy = bodies[j].posY - bodies[i].posY
             dis = math.hypot(dx, dy)
-            PE -= G * bodies[i].mass * bodies[j].mass / dis
+            if dis != 0:
+                PE -= G * bodies[i].mass * bodies[j].mass / dis
     E = KE + PE # Total energy in the system
     return E, KE, PE
 
@@ -287,7 +290,7 @@ class Body:
             newPosX = 2 * self.posX - self.prevPosX + ax * dt ** 2
             newPosY = 2 * self.posY - self.prevPosY + ay * dt ** 2
             
-            self.velocity = calcVelocity(self)
+            self.velX, self.velY, self.velocity = calcVelocity(self)
             
             self.prevPosX = self.posX
             self.prevPosY = self.posY
@@ -303,9 +306,6 @@ class Body:
             self.radius = NewRadii(self.radius, CollidedBody.radius)
             CollidedBody.exists = False
             removeFromList(CollidedBody)
-            self.velX = (self.velX * self.mass + CollidedBody.velX * CollidedBody.mass) / self.mass
-            self.velY = (self.velY * self.mass + CollidedBody.velY * CollidedBody.mass) / self.mass
-
 
     def collideAndMerge(self):
         if self.exists == True:
@@ -322,8 +322,7 @@ class Body:
                     
                     sphereHit = Sradius + bradius 
                     
-                    eps = 1e20 #epsilon cuz collision doesnt work
-                    distance1 = math.sqrt(distanceToOtherX**2 + distanceToOtherY**2 + eps**2)
+                    distance1 = math.sqrt(distanceToOtherX**2 + distanceToOtherY**2)
                     
                     if distance1 < sphereHit:
                         self.merge(body)
@@ -425,6 +424,9 @@ def mainSIM(System):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+        E = 0
+        KE = 0
+        PE = 0
         E, KE, PE = calcEnergy()
         screen.fill(BLACK)
         Keys= pygame.key.get_pressed()
@@ -504,11 +506,11 @@ tbody1 = Body("Star1", 2e30, 5e8, YELLOW, -AU, -AU)
 tbody1.velX = -x
 tbody1.velY = x *3
 tbody2 = Body("Star2", 1e31, 5e8, YELLOW, 0, 0)
-tbody1.velX = 2 * -x
-tbody1.velY = 2 * x
+tbody2.velX = 2 * -x
+tbody2.velY = 2 * x
 tbody3 = Body("Star3", 1e30, 5e8, YELLOW, AU, -AU)
-tbody1.velX = -x
-tbody1.velY = x
+tbody3.velX = -x *2
+tbody3.velY = x
 
 obj = Body("Horse Shoe Crab Orbit Satellite", 7e22, 1737.4e3, WHITE, 1.05 * AU, 0 )
 obj.velY = -25000
@@ -672,8 +674,13 @@ def MAIN():
             print(f"Trail is now set to {SHOW_TRAIL}")
         elif choose.lower() == "restart":
             print("Restarting... ")
+            script_path = os.path.abspath(__file__)
+            
             python = sys.executable
-            os.execv(python, [python] + sys.argv)
+            subprocess.Popen([python, script_path])
+            sys.exit()
+            print("'Bye'  -  Evyvaan said calmly")
+            print("================================================================================================================================")
         else:
             print("Invalid Command")
     sys.exit()

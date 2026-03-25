@@ -1,11 +1,11 @@
-#Planetary Body Simulation
+# Planetary Body Simulation
 
 A real-time N-body gravitational simulation built using Python and Pygame.
 This project models planetary motion, multi-body systems, and orbital mechanics using Verlet integration for improved stability and energy behavior.
 
 ---
 
-🚀 Features
+##  Features
 
 - 🌍 Realistic planetary motion (approximate physical scaling)
 - ⭐ Binary star system with orbiting planet
@@ -19,7 +19,7 @@ This project models planetary motion, multi-body systems, and orbital mechanics 
 
 ---
 
-🧠 Physics & Concepts
+##  Physics & Concepts
 
 - Newtonian Gravity
 - N-body Simulation
@@ -30,7 +30,7 @@ This project models planetary motion, multi-body systems, and orbital mechanics 
 
 ---
 
-🎮 Controls (Simulation Window)
+##  Controls (Simulation Window)
 
 Key| Action
 SPACE| Pause / Resume simulation
@@ -41,9 +41,9 @@ R| Reset zoom
 
 ---
 
-💻 Console Commands (">>>")
+##  Console Commands (">>>")
 
-🔹 Run Systems
+### Run Systems
 
 1 → Solar System 
 2 → Binary Star System 
@@ -53,13 +53,13 @@ R| Reset zoom
 6 → Horseshoe Orbit 
 7 → Slingshot Simulation 
 
-🔹 General Commands
+##  General Commands
 
 exit / quit → Close program 
 restart → Restart simulation 
 show → Display system parameters 
 
-🔹 Settings
+##  Settings
 
 set-timestep → Change simulation timestep 
 set-trail_length → Adjust trail length 
@@ -67,18 +67,16 @@ set-trail → Toggle trails on/off
 
 ---
 
-📊 Data Visualization
+##  Data Visualization
 
 After running simulations, you can generate plots using matplotlib:
 
 - Velocity vs Time
 - Energy vs Time (KE, PE, Total)
 
-These help analyze system stability and numerical accuracy.
-
 ---
 
-⚙️ Installation & Run
+##  Installation & Run
 
 Requirements
 
@@ -96,7 +94,7 @@ python SolarSystemSim.py
 
 ---
 
-⚠️ Notes
+##  Notes
 
 - Units are SI (meters, kilograms, seconds)
 - Timestep significantly affects accuracy
@@ -106,25 +104,25 @@ python SolarSystemSim.py
 
 ---
 
-📸 Screenshots
+##  Screenshots
 
 
 ---
 
-👨‍💻 Author
+##  Author
 
 Evyvaan Singh
 Project started: March 2025
 
 ---
 
-🧾 License
+##  License
 
 This project is open for learning, experimentation, and modification.
 
 ---
 
-🔮 Future Improvements
+##  Future Improvements
 
 - Adaptive timestep
 - Improved collision handling

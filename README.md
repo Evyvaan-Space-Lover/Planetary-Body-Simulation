@@ -119,12 +119,15 @@ python SolarSystemSim.py
 
 ##  Screenshots
 
+![Binary Star System](images/SimBinaryStarSys2.JPG) ![Solar System](images/SimSolarSys.JPG) ![Solar System](images/SimSolarSys2.JPG) 
+![Three Body System Velocity Plot](images/ThreeBodyEnergyPlot(Timestep=60).png)
 
 ---
 
 ##  Author
 
 Evyvaan Singh
+
 Project started: March 2025
 
 ---

@@ -51,11 +51,17 @@ R| Reset zoom
 ### Run Systems
 
 1 → Solar System 
+
 2 → Binary Star System 
+
 3 → Elliptical Orbit 
+
 4 → L4 & L5 System 
+
 5 → Three Body Chaos 
+
 6 → Horseshoe Orbit 
+
 7 → Slingshot Simulation 
 
 ###  General Commands

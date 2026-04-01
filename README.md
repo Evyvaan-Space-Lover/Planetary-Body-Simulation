@@ -152,3 +152,5 @@ This project is open for learning, experimentation, and modification.
 - UI and usability enhancements
 
 ---
+## Note
+All the code is written by a real human. Unfortunately, this README is created by an AI as it is such a boring and uninsteresting task. (I am sorry)

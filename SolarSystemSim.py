@@ -41,10 +41,23 @@ TOTAL_E = []
 SHOW_TRAIL = True
 SHOW_ENERGY = False
 PLTVELOCITY = False
+LINE2COM = False
 
 def removeFromList(item):
     if item in bodies:
         bodies.remove(item)
+
+def graphCOM(bodies):
+    plt.figure()
+    for body in bodies:
+        plt.plot(body.DISTANCECOM, label=f"{body.name} Distance to COM")
+    
+    plt.legend()
+    
+    plt.title("Distance to Center of Mass vs Time")
+    plt.xlabel("Frames")
+    plt.ylabel("Distance to COM (in meters)")
+    plt.show()
 
 def graphVelocity(bodies):
     plt.figure()
@@ -54,7 +67,7 @@ def graphVelocity(bodies):
     plt.legend()
     
     plt.title("Velocity vs Time")
-    plt.xlabel("Times Steps")
+    plt.xlabel("Frames")
     plt.ylabel("Velocity (in m/s)")
     plt.show()
 
@@ -67,7 +80,7 @@ def graphEnergies(data, data1, data2):
     plt.legend()
     
     plt.title("Energy vs Time")
-    plt.xlabel("Times Steps")
+    plt.xlabel("Frames")
     plt.ylabel("Energy (In Joules)")
     plt.show()
 
@@ -120,11 +133,13 @@ def printASCII():
 
 def askPlotter():
     if input("Do you want to plot some niffty data? (y/n) \n > ").lower() == "y":
-        answer = input("What do you wanna plot? \n -Velocities (1) \n -Total energy of the system (2) \n > ")
+        answer = input("What do you wanna plot? \n -Velocities (1) \n -Total energy of the system (2) \n -Distance to the Center of Mass (3) \n > ")
         if answer == "1":
             return True, "Velocity"
         elif answer == "2":
             return True, "Energy"
+        elif answer == "3":
+            return True, "COM"
         else:
             print("Proceeding with No plots")
             return False, None
@@ -138,6 +153,14 @@ def calcVelocity(body):
     velocity = math.hypot(vx, vy)
     return vx, vy, velocity
 
+def calcCenterOfMass():
+    total_mass = sum(body.mass for body in bodies if body.exists)
+    if total_mass == 0:
+        return 0.0, 0.0
+
+    com_x = sum(body.mass * body.posX for body in bodies if body.exists) / total_mass
+    com_y = sum(body.mass * body.posY for body in bodies if body.exists) / total_mass
+    return com_x, com_y
 
 def calcEnergy():
     KE = 0
@@ -198,10 +221,11 @@ class Body:
         self.prevPosY = None
         self.lastposX = None
         self.lastposY = None
-        self.Asteroid = False
         self.CenterPosX= None
         self.CenterPosY = None
+        self.distanceToCOM = None
         
+        self.DISTANCECOM = []
         self.VELOCITY = []
         self.velocity = 0
 
@@ -228,6 +252,12 @@ class Body:
             if not (math.isfinite(x) and math.isfinite(y)):
                 return
 
+            if LINE2COM:
+                comX, comY = calcCenterOfMass()
+                comX = comX * SCALE1 + CenterPosx
+                comY = comY * SCALE1 + CenterPosy
+                pygame.draw.line(screen, WHITE, (x, y), (comX, comY), 1)
+
             # ngl, this is the only thing that i blatantly stole from the INTERNET cuz i had no idea how to do trails, and it works pretty well
             self.trail.append((int(x), int(y)))
             if len(self.trail) > trail and not pygame.key.get_pressed()[pygame.K_SPACE]:
@@ -235,7 +265,6 @@ class Body:
             
             if pygame.key.get_pressed()[pygame.K_w] or pygame.key.get_pressed()[pygame.K_s] or pygame.key.get_pressed()[pygame.K_r] or pygame.key.get_pressed()[pygame.K_t] or pygame.key.get_pressed()[pygame.K_g] or pygame.key.get_pressed()[pygame.K_f] or pygame.key.get_pressed()[pygame.K_h]: # dont make trail wihile zooming in or out and movng bruh
                 self.trail.clear()
-            
             
             pygame.draw.circle(
                 screen,
@@ -297,6 +326,9 @@ class Body:
             self.posX = newPosX
             self.posY = newPosY
             
+            self.distanceToCOM = math.hypot(self.posX - CenterPosx, self.posY - CenterPosy)
+            if PLTORNOT == True and TYPEPLT == "COM":
+                self.DISTANCECOM.append(self.distanceToCOM)
             if PLTVELOCITY == True:
                 self.VELOCITY.append(self.velocity)
 
@@ -407,7 +439,7 @@ def Sim(System, screen):
         SlingShot(Keys[pygame.K_SPACE], screen)
 
 def mainSIM(System): 
-    global SCALE1 # I have no idea why i have to do this but if i dont do this, it falls apart lmao
+    global SCALE1 # I have no idea why i have to do this but if i dont do this, it falls apart lmao (4/5/2026: now that i think about it, it makes sense lmao)
     global CenterPosx
     global CenterPosy
     global SYSTEM
@@ -431,6 +463,8 @@ def mainSIM(System):
         screen.fill(BLACK)
         Keys= pygame.key.get_pressed()
         CamControls()
+        
+        comX, comY = calcCenterOfMass() #Center of Mass
         
         Sim(System, screen)
         if SHOW_ENERGY:
@@ -456,9 +490,8 @@ def mainSIM(System):
             graphVelocity(crab)
         if System == "SlingShot":
             graphVelocity(sling)
-
-
-
+    if PLTORNOT == True and TYPEPLT == "COM":
+        graphCOM(bodies)
 
 #Some cool bodies with actual real data
 Sun = Body("Sun", 1.9891e30, 696340e3, S_YELLOW, 0, 0)
@@ -477,9 +510,9 @@ Jupiter.velY = -13070
 Saturn = Body("Saturn", 5.683e26, 60268e3, (227, 224, 192), 9.56 * AU, 0)
 Saturn.velY = -9680
 Uranus = Body("Uranus", 8.681e25, 25362e3, (172, 229, 238), 19.2 * AU, 0) #LMAO
-Uranus.velY = 6810
+Uranus.velY = -6810
 Neptune = Body("Neptune", 1.024e26, 24764e3, (124, 183, 187), 30.1 * AU, 0)
-Neptune.velY = 5430
+Neptune.velY = -5430
 
 #Not so real data, but still fun to watch :D
 StarA = Body("StarA", 2e30, 700000e3, YELLOW, AU * 2.3, -0.4 * AU)
@@ -492,7 +525,6 @@ X1Planet.velY = -20000
 Star1 = Body("Star1", 10e30, 10000e5, RED, -AU, 0)
 bodyC = Body("BodyC", 1e25, 5000e2, GREY, AU*0.6, 0)
 bodyC.velY = -18000
-
 
 BigPlanetForSlingShot = Body("big ahh planet", 2e31, 69911e4, CYAN, 0, 0)
 BigPlanetForSlingShot.velX = 24000
@@ -551,6 +583,7 @@ def MAIN():
     global TYPEPLT
     global SHOW_TRAIL
     global PLTVELOCITY
+    global LINE2COM
     printASCII()
     print("==============================-Evyvaan Singh - 2026-==============================")
     print("\nWelcome To 'Planetary Body Simulation'! ")
@@ -559,92 +592,92 @@ def MAIN():
         choose = input(">>> ")
         if choose == "1":
             PLTORNOT, TYPEPLT = askPlotter()
+            print("Task Started Successfully! \nYou can leave the program by entering 'exit'.")
+            print("\nNow simulating, the Solar System.")
             if PLTORNOT:
                 if TYPEPLT == "Velocity" or TYPEPLT == "Both":
                     PLTVELOCITY = True
-                    print("trying")
                 if TYPEPLT == "Energy" or TYPEPLT == "Both":
                     SHOW_ENERGY = True
-            print("Task Started Successfully! \nYou can leave the program by entering 'exit'.")
-            print("\nNow simulating, the Solar System.")
+                print("Trying to plot the data, this may take a while...")
             mainSIM("SolarSystem")
             print("It is recommended to restart the entire program to run another simulation. (You can restart by typing 'restart') \n====Simulation Ended====")
         elif choose == "2":
             PLTORNOT, TYPEPLT = askPlotter()
-            if PLTORNOT:
-                if TYPEPLT == "Velocity" or TYPEPLT == "Both":
-                    PLTVELOCITY = True
-                    print("trying")
-                if TYPEPLT == "Energy" or TYPEPLT == "Both":
-                    SHOW_ENERGY = True
             print("Task Started Successfully! \nYou can leave the program by entering 'exit'.")
             print("Task Started Successfully! \n You can leave the program by entering 'exit'.")
             print("Now simulating, the Binary Stars System.")
+            if PLTORNOT:
+                if TYPEPLT == "Velocity" or TYPEPLT == "Both":
+                    PLTVELOCITY = True
+                if TYPEPLT == "Energy" or TYPEPLT == "Both":
+                    SHOW_ENERGY = True
+                print("Trying to plot the data, this may take a while...")
             mainSIM("BinarySystem")
             print("It is recommended to restart the entire program to run another simulation. (You can restart by typing 'restart') \n====Simulation Ended====")
         elif choose == "3":
             PLTORNOT, TYPEPLT = askPlotter()
-            if PLTORNOT:
-                if TYPEPLT == "Velocity" or TYPEPLT == "Both":
-                    PLTVELOCITY = True
-                    print("trying")
-                if TYPEPLT == "Energy" or TYPEPLT == "Both":
-                    SHOW_ENERGY = True
             print("Task Started Successfully! \nYou can leave the program by entering 'exit'.")
             print("Task Started Successfully! \n You can leave the program by entering 'exit'.")
             print("Now simulating, a system in which the planet follows an elliptical orbit.")
+            if PLTORNOT:
+                if TYPEPLT == "Velocity" or TYPEPLT == "Both":
+                    PLTVELOCITY = True
+                if TYPEPLT == "Energy" or TYPEPLT == "Both":
+                    SHOW_ENERGY = True
+                print("Trying to plot the data, this may take a while...")
             mainSIM("ElipticalSystem")
             print("It is recommended to restart the entire program to run another simulation. (You can restart by typing 'restart') \n====Simulation Ended====")
         elif choose == "4":
             PLTORNOT, TYPEPLT = askPlotter()
-            if PLTORNOT:
-                if TYPEPLT == "Velocity" or TYPEPLT == "Both":
-                    PLTVELOCITY = True
-                    print("trying")
-                if TYPEPLT == "Energy" or TYPEPLT == "Both":
-                    SHOW_ENERGY = True
             print("Task Started Successfully! \nYou can leave the program by entering 'exit'.")
             print("Task Started Successfully! \n You can leave the program by entering 'exit'.")
             print("Now simulating, the Earth and the Sun with two asteroid on L4 and L5 (With Diagram Lines)")
+            if PLTORNOT:
+                if TYPEPLT == "Velocity" or TYPEPLT == "Both":
+                    PLTVELOCITY = True
+                if TYPEPLT == "Energy" or TYPEPLT == "Both":
+                    SHOW_ENERGY = True
+                print("Trying to plot the data, this may take a while...")
             mainSIM("L4 and L5")
             print("It is recommended to restart the entire program to run another simulation. (You can restart by typing 'restart') \n ====Simulation Ended====")
         elif choose == "5":
             PLTORNOT, TYPEPLT = askPlotter()
-            if PLTORNOT:
-                if TYPEPLT == "Velocity"or TYPEPLT == "Both":
-                    PLTVELOCITY = True
-                    print("trying")
-                if TYPEPLT == "Energy" or TYPEPLT == "Both":
-                    SHOW_ENERGY = True
             print("Task Started Successfully! \nYou can leave the program by entering 'exit'.")
             print("Task Started Successfully! \n You can leave the program by entering 'exit'.")
             print("Now simulating, a three body chaptic system. Best with low timestep.")
+            if PLTORNOT:
+                if TYPEPLT == "Velocity" or TYPEPLT == "Both":
+                    PLTVELOCITY = True
+                if TYPEPLT == "Energy" or TYPEPLT == "Both":
+                    SHOW_ENERGY = True
+                print("Trying to plot the data, this may take a while...")
             mainSIM("ThreeBody")
             print("It is recommended to restart the entire program to run another simulation. (You can restart by typing 'restart') \n ====Simulation Ended====")
         elif choose == "6":
             PLTORNOT, TYPEPLT = askPlotter()
-            if PLTORNOT:
-                if TYPEPLT == "Velocity" or TYPEPLT == "Both":
-                    PLTVELOCITY = True
-                    print("trying")
-                if TYPEPLT == "Energy"or TYPEPLT == "Both":
-                    SHOW_ENERGY = True
             print("Task Started Successfully! \nYou can leave the program by entering 'exit'.")
             print("Task Started Successfully! \n You can leave the program by entering 'exit'.")
             print("Now simulating, a three body chaptic system. Best with low timestep.")
+            if PLTORNOT:
+                if TYPEPLT == "Velocity" or TYPEPLT == "Both":
+                    PLTVELOCITY = True
+                if TYPEPLT == "Energy" or TYPEPLT == "Both":
+                    SHOW_ENERGY = True
+                print("Trying to plot the data, this may take a while...")
             mainSIM("HorseShoe")
             print("It is recommended to restart the entire program to run another simulation. (You can restart by typing 'restart') \n ====Simulation Ended====")
         elif choose == "7":
             PLTORNOT, TYPEPLT = askPlotter()
-            if PLTORNOT:
-                if TYPEPLT == "Velocity" or TYPEPLT == "Both":
-                    PLTVELOCITY = True
-                    print("trying")
-                if TYPEPLT == "Energy" or TYPEPLT == "Both":
-                    SHOW_ENERGY = True
             print("Task Started Successfully! \nYou can leave the program by entering 'exit'.")
             print("Task Started Successfully! \n You can leave the program by entering 'exit'.")
             print("Now simulating, a Sling Shot (With a probe)")
+            if PLTORNOT:
+                if TYPEPLT == "Velocity" or TYPEPLT == "Both":
+                    PLTVELOCITY = True
+                if TYPEPLT == "Energy" or TYPEPLT == "Both":
+                    SHOW_ENERGY = True
+                print("Trying to plot the data, this may take a while...")
             mainSIM("SlingShot")
             print("It is recommended to restart the entire program to run another simulation. (You can restart by typing 'restart') \n ====Simulation Ended====")
         elif choose == "exit" or choose == "quit":
@@ -655,7 +688,7 @@ def MAIN():
             running = False
             print("no. this is not allowed here")
         elif choose.lower() == "set-timestep":
-            TIMESTEP = 60 * int(input("(Default is 60 x 60) Time Step: 60 x "))
+            TIMESTEP = 60 * float(input("(Default is 60 x 60) Time Step: 60 x "))
             print(f"The timestep is {TIMESTEP}. Note that the default timestep is the most stable timestep.\n Increasing the timestep may lead to instability and innaccuracies in the simulation.")
         elif choose.lower() == "set-trail_lenght":
             TRAIL_LENGTH = int(input("Trail Lenght (Default is 500) = "))
@@ -672,6 +705,13 @@ def MAIN():
             else:
                 SHOW_TRAIL = True
             print(f"Trail is now set to {SHOW_TRAIL}")
+        elif choose.lower() == "set-com-line":
+            print("Toggling line to center of mass")
+            if LINE2COM == True:
+                LINE2COM = False
+            else:
+                LINE2COM = True
+            print(f"Line to center of mass is now set to '{LINE2COM}'")
         elif choose.lower() == "restart":
             print("Restarting... ")
             script_path = os.path.abspath(__file__)

@@ -30,6 +30,7 @@ SCALE1 = 250/AU # Scale for rendering planets
 TIMESTEP = 60 * 60
 
 bodies = []
+plotBodies = []
 TRAIL_LENGTH = 500
 SYSTEM = None
 PLTORNOT = False
@@ -69,6 +70,20 @@ def graphVelocity(bodies):
     plt.title("Velocity vs Time")
     plt.xlabel("Frames")
     plt.ylabel("Velocity (in m/s)")
+    plt.show()
+
+def graphPosition(bodies):
+    plt.figure()
+    for body in bodies:
+        x = body.X
+        y = [-val for val in body.Y]
+        plt.plot(x, y, label=f"{body.name} Position")
+    
+    plt.legend()
+    
+    plt.title("Position (X vs Y)")
+    plt.xlabel("X Position (in meters)")
+    plt.ylabel("Y Position (in meters)")
     plt.show()
 
 def graphEnergies(data, data1, data2):
@@ -133,13 +148,17 @@ def printASCII():
 
 def askPlotter():
     if input("Do you want to plot some niffty data? (y/n) \n > ").lower() == "y":
-        answer = input("What do you wanna plot? \n -Velocities (1) \n -Total energy of the system (2) \n -Distance to the Center of Mass (3) \n > ")
+        answer = input("What do you wanna plot? \n -Velocities (1) \n -Total energy of the system (2) \n -Distance to the Center of Mass (3) \n -Record Position (4) \n -All of the above (5) \n > ")
         if answer == "1":
             return True, "Velocity"
         elif answer == "2":
             return True, "Energy"
         elif answer == "3":
             return True, "COM"
+        elif answer == "4":
+            return True, "Position"
+        elif answer == "5":
+            return True, "all"
         else:
             print("Proceeding with No plots")
             return False, None
@@ -227,11 +246,15 @@ class Body:
         
         self.DISTANCECOM = []
         self.VELOCITY = []
+        self.X = []
+        self.Y = []
         self.velocity = 0
 
     def addToList(item):
+        global plotBodies
         if item.counter == 0:
             bodies.append(item)
+            plotBodies.append(item)
             item.counter = 1
 
 
@@ -327,10 +350,13 @@ class Body:
             self.posY = newPosY
             
             self.distanceToCOM = math.hypot(self.posX - CenterPosx, self.posY - CenterPosy)
-            if PLTORNOT == True and TYPEPLT == "COM":
+            if PLTORNOT == True and TYPEPLT == "COM" or TYPEPLT == "all":
                 self.DISTANCECOM.append(self.distanceToCOM)
             if PLTVELOCITY == True:
                 self.VELOCITY.append(self.velocity)
+            if PLTORNOT == True and TYPEPLT == "Position" or TYPEPLT == "all":
+                self.X.append(self.posX)
+                self.Y.append(self.posY)
 
     def merge(self, CollidedBody):
         if CollidedBody.mass < self.mass:
@@ -438,7 +464,9 @@ def Sim(System, screen):
     if System == "SlingShot":
         SlingShot(Keys[pygame.K_SPACE], screen)
 
-def mainSIM(System): 
+def mainSIM(System):
+    global plotBodies
+    plotBodies = []
     global SCALE1 # I have no idea why i have to do this but if i dont do this, it falls apart lmao (4/5/2026: now that i think about it, it makes sense lmao)
     global CenterPosx
     global CenterPosy
@@ -475,23 +503,12 @@ def mainSIM(System):
     pygame.quit()
     if SHOW_ENERGY:
         graphEnergies(TOTAL_E, TOTAL_KE, TOTAL_PE)
-    if PLTORNOT == True and TYPEPLT ==  "Velocity":
-        if System == "SolarSystem":
-            graphVelocity(b)
-        if System == "BinarySystem":
-            graphVelocity(binary)
-        if System == "ElipticalSystem":
-            graphVelocity(eliptical)
-        if System == "L4 and L5":
-            graphVelocity(pointdemo)
-        if System == "ThreeBody":
-            graphVelocity(chaos)
-        if System == "HorseShoe":
-            graphVelocity(crab)
-        if System == "SlingShot":
-            graphVelocity(sling)
-    if PLTORNOT == True and TYPEPLT == "COM":
-        graphCOM(bodies)
+    if PLTORNOT == True and TYPEPLT ==  "Velocity" or TYPEPLT == "all":
+        graphVelocity(plotBodies)
+    if PLTORNOT == True and TYPEPLT == "COM" or TYPEPLT == "all":
+        graphCOM(plotBodies)
+    if PLTORNOT == True and TYPEPLT == "Position" or TYPEPLT == "all":
+        graphPosition(plotBodies)
 
 #Some cool bodies with actual real data
 Sun = Body("Sun", 1.9891e30, 696340e3, S_YELLOW, 0, 0)
@@ -595,9 +612,9 @@ def MAIN():
             print("Task Started Successfully! \nYou can leave the program by entering 'exit'.")
             print("\nNow simulating, the Solar System.")
             if PLTORNOT:
-                if TYPEPLT == "Velocity" or TYPEPLT == "Both":
+                if TYPEPLT == "Velocity" or TYPEPLT == "all":
                     PLTVELOCITY = True
-                if TYPEPLT == "Energy" or TYPEPLT == "Both":
+                if TYPEPLT == "Energy" or TYPEPLT == "all":
                     SHOW_ENERGY = True
                 print("Trying to plot the data, this may take a while...")
             mainSIM("SolarSystem")
@@ -608,9 +625,9 @@ def MAIN():
             print("Task Started Successfully! \n You can leave the program by entering 'exit'.")
             print("Now simulating, the Binary Stars System.")
             if PLTORNOT:
-                if TYPEPLT == "Velocity" or TYPEPLT == "Both":
+                if TYPEPLT == "Velocity" or TYPEPLT == "all":
                     PLTVELOCITY = True
-                if TYPEPLT == "Energy" or TYPEPLT == "Both":
+                if TYPEPLT == "Energy" or TYPEPLT == "all":
                     SHOW_ENERGY = True
                 print("Trying to plot the data, this may take a while...")
             mainSIM("BinarySystem")
@@ -621,9 +638,9 @@ def MAIN():
             print("Task Started Successfully! \n You can leave the program by entering 'exit'.")
             print("Now simulating, a system in which the planet follows an elliptical orbit.")
             if PLTORNOT:
-                if TYPEPLT == "Velocity" or TYPEPLT == "Both":
+                if TYPEPLT == "Velocity" or TYPEPLT == "all":
                     PLTVELOCITY = True
-                if TYPEPLT == "Energy" or TYPEPLT == "Both":
+                if TYPEPLT == "Energy" or TYPEPLT == "all":
                     SHOW_ENERGY = True
                 print("Trying to plot the data, this may take a while...")
             mainSIM("ElipticalSystem")
@@ -634,9 +651,9 @@ def MAIN():
             print("Task Started Successfully! \n You can leave the program by entering 'exit'.")
             print("Now simulating, the Earth and the Sun with two asteroid on L4 and L5 (With Diagram Lines)")
             if PLTORNOT:
-                if TYPEPLT == "Velocity" or TYPEPLT == "Both":
+                if TYPEPLT == "Velocity" or TYPEPLT == "all":
                     PLTVELOCITY = True
-                if TYPEPLT == "Energy" or TYPEPLT == "Both":
+                if TYPEPLT == "Energy" or TYPEPLT == "all":
                     SHOW_ENERGY = True
                 print("Trying to plot the data, this may take a while...")
             mainSIM("L4 and L5")
@@ -647,9 +664,9 @@ def MAIN():
             print("Task Started Successfully! \n You can leave the program by entering 'exit'.")
             print("Now simulating, a three body chaptic system. Best with low timestep.")
             if PLTORNOT:
-                if TYPEPLT == "Velocity" or TYPEPLT == "Both":
+                if TYPEPLT == "Velocity" or TYPEPLT == "all":
                     PLTVELOCITY = True
-                if TYPEPLT == "Energy" or TYPEPLT == "Both":
+                if TYPEPLT == "Energy" or TYPEPLT == "all":
                     SHOW_ENERGY = True
                 print("Trying to plot the data, this may take a while...")
             mainSIM("ThreeBody")
@@ -660,9 +677,9 @@ def MAIN():
             print("Task Started Successfully! \n You can leave the program by entering 'exit'.")
             print("Now simulating, a three body chaptic system. Best with low timestep.")
             if PLTORNOT:
-                if TYPEPLT == "Velocity" or TYPEPLT == "Both":
+                if TYPEPLT == "Velocity" or TYPEPLT == "all":
                     PLTVELOCITY = True
-                if TYPEPLT == "Energy" or TYPEPLT == "Both":
+                if TYPEPLT == "Energy" or TYPEPLT == "all":
                     SHOW_ENERGY = True
                 print("Trying to plot the data, this may take a while...")
             mainSIM("HorseShoe")
@@ -673,9 +690,9 @@ def MAIN():
             print("Task Started Successfully! \n You can leave the program by entering 'exit'.")
             print("Now simulating, a Sling Shot (With a probe)")
             if PLTORNOT:
-                if TYPEPLT == "Velocity" or TYPEPLT == "Both":
+                if TYPEPLT == "Velocity" or TYPEPLT == "all":
                     PLTVELOCITY = True
-                if TYPEPLT == "Energy" or TYPEPLT == "Both":
+                if TYPEPLT == "Energy" or TYPEPLT == "all":
                     SHOW_ENERGY = True
                 print("Trying to plot the data, this may take a while...")
             mainSIM("SlingShot")
@@ -690,7 +707,7 @@ def MAIN():
         elif choose.lower() == "set-timestep":
             TIMESTEP = 60 * float(input("(Default is 60 x 60) Time Step: 60 x "))
             print(f"The timestep is {TIMESTEP}. Note that the default timestep is the most stable timestep.\n Increasing the timestep may lead to instability and innaccuracies in the simulation.")
-        elif choose.lower() == "set-trail_lenght":
+        elif choose.lower() == "set-trail-lenght":
             TRAIL_LENGTH = int(input("Trail Lenght (Default is 500) = "))
             print(f"The Trail Lenght is {TRAIL_LENGTH}. Note that the bigger trails may cause performance issues")
         elif choose.lower() == "show":

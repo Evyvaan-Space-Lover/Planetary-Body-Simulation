@@ -77,13 +77,13 @@ def graphPosition(bodies):
     for body in bodies:
         x = body.X
         y = [-val for val in body.Y]
-        plt.plot(x, y, label=f"{body.name} Position")
+        plt.plot(x, y, label=f"{body.name} Trajectory")
     
     plt.legend()
     
-    plt.title("Position (X vs Y)")
-    plt.xlabel("X Position (in meters)")
-    plt.ylabel("Y Position (in meters)")
+    plt.title("Trajectory (X vs Y)")
+    plt.xlabel("X Trajectory (in meters)")
+    plt.ylabel("Y Trajectory (in meters)")
     plt.show()
 
 def graphEnergies(data, data1, data2):
@@ -201,6 +201,14 @@ def calcEnergy():
 def NewRadii(R1, R2):
     FinalRadii = math.pow(R1**3 + R2**3, 1/3)
     return FinalRadii
+
+def TimestepControls():
+    global TIMESTEP
+    Keys= pygame.key.get_pressed()
+    if Keys[pygame.K_q]:
+        TIMESTEP *= 1.1
+    if Keys[pygame.K_e]:
+        TIMESTEP /= 1.1
 
 def CamControls():
     global CenterPosx
@@ -349,7 +357,8 @@ class Body:
             self.posX = newPosX
             self.posY = newPosY
             
-            self.distanceToCOM = math.hypot(self.posX - CenterPosx, self.posY - CenterPosy)
+            self.distanceToCOM = math.hypot(self.posX - comX, self.posY - comY)
+            
             if PLTORNOT == True and TYPEPLT == "COM" or TYPEPLT == "all":
                 self.DISTANCECOM.append(self.distanceToCOM)
             if PLTVELOCITY == True:
@@ -474,8 +483,12 @@ def mainSIM(System):
     global TOTAL_PE
     global TOTAL_KE
     global TOTAL_E
+    global comX
+    global comY
     pygame.init()
     SCALE1 = 250/AU
+    CenterPosx = (WIDTH/2)
+    CenterPosy = (HEIGHT/2)
     pygame.display.set_caption("Solar System Simulation")
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     running = True
@@ -490,9 +503,10 @@ def mainSIM(System):
         E, KE, PE = calcEnergy()
         screen.fill(BLACK)
         Keys= pygame.key.get_pressed()
+        # TimestepControls() #()
         CamControls()
         
-        comX, comY = calcCenterOfMass() #Center of Mass
+        comX, comY = calcCenterOfMass() #Center of Mass 
         
         Sim(System, screen)
         if SHOW_ENERGY:
@@ -601,6 +615,8 @@ def MAIN():
     global SHOW_TRAIL
     global PLTVELOCITY
     global LINE2COM
+    global WIDTH
+    global HEIGHT
     printASCII()
     print("==============================-Evyvaan Singh - 2026-==============================")
     print("\nWelcome To 'Planetary Body Simulation'! ")
@@ -701,7 +717,7 @@ def MAIN():
             running = False
             print("'Bye'  -  Evyvaan said calmly")
             print("================================================================================================================================")
-        elif choose.lower() == "skibidi":
+        elif choose.lower() == "skibidi" or choose.lower() == "skibidi toilet" or choose.lower() == "gyatt":
             running = False
             print("no. this is not allowed here")
         elif choose.lower() == "set-timestep":
@@ -729,6 +745,10 @@ def MAIN():
             else:
                 LINE2COM = True
             print(f"Line to center of mass is now set to '{LINE2COM}'")
+        elif choose.lower() == "set-screen-size":
+            WIDTH = int(input("Width (Default is 1200) = "))
+            HEIGHT = int(input("Height (Default is 800) = "))
+            print(f"Screen size is now set to {WIDTH} x {HEIGHT}. Note that smaller screen sizes may cause performance issues")
         elif choose.lower() == "restart":
             print("Restarting... ")
             script_path = os.path.abspath(__file__)

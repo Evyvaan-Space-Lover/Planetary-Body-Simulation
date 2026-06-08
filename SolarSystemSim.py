@@ -1,16 +1,16 @@
 #Fully Made by Evyvaan, with a little help from the internet for the trails, physics and data, but it works so be it
-#Project started on 17 March 2026
+#Project started on 17 March 2025
 
 import pygame
 pygame.init()
 import math
+from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 import os
 import sys
 import subprocess
 
 WIDTH, HEIGHT = 1350, 650
-
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
@@ -86,6 +86,30 @@ def graphPosition(bodies):
     plt.ylabel("Y Trajectory (in meters)")
     plt.show()
 
+
+def graphPosition3D(bodies):
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    
+    for body in bodies:
+        x = body.X
+        y = [-val for val in body.Y]
+        time = range(len(x))
+        name = body.name
+        
+        ax.plot(x, y, time, label=f"{name} Path")
+    
+    ax.set_title("3D Trajectory (X vs Y vs Time)")
+    ax.set_xlabel("X Position (in meters)")
+    ax.set_ylabel("Y Position (in meters)")
+    ax.set_zlabel("Time (in seconds)")
+    ax.legend()
+    
+    ax.view_init(elev=30, azim=120)  # Adjust the viewing angle as needed
+    
+    plt.show()
+
+
 def graphEnergies(data, data1, data2):
     plt.figure()
     plt.plot(data, label="Total Energy Of the System")
@@ -148,7 +172,7 @@ def printASCII():
 
 def askPlotter():
     if input("Do you want to plot some niffty data? (y/n) \n > ").lower() == "y":
-        answer = input("What do you wanna plot? \n -Velocities (1) \n -Total energy of the system (2) \n -Distance to the Center of Mass (3) \n -Record Position (4) \n -All of the above (5) \n > ")
+        answer = input("What do you wanna plot? \n -Velocities (1) \n -Total energy of the system (2) \n -Distance to the Center of Mass (3) \n -Record Trajectory (4) \n -Record Position with Time (5) \n -All of the above (6) \n  > ")
         if answer == "1":
             return True, "Velocity"
         elif answer == "2":
@@ -158,6 +182,8 @@ def askPlotter():
         elif answer == "4":
             return True, "Position"
         elif answer == "5":
+            return True, "Position3D"
+        elif answer == "6":
             return True, "all"
         else:
             print("Proceeding with No plots")
@@ -523,6 +549,8 @@ def mainSIM(System):
         graphCOM(plotBodies)
     if PLTORNOT == True and TYPEPLT == "Position" or TYPEPLT == "all":
         graphPosition(plotBodies)
+    if PLTORNOT == True and TYPEPLT == "Position3D" or TYPEPLT == "all":
+        graphPosition3D(plotBodies)
 
 #Some cool bodies with actual real data
 Sun = Body("Sun", 1.9891e30, 696340e3, S_YELLOW, 0, 0)

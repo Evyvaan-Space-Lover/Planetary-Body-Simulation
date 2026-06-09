@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import os
 import sys
 import subprocess
+import random
 
 WIDTH, HEIGHT = 1350, 650
 BLACK = (0, 0, 0)
@@ -389,7 +390,7 @@ class Body:
                 self.DISTANCECOM.append(self.distanceToCOM)
             if PLTVELOCITY == True:
                 self.VELOCITY.append(self.velocity)
-            if PLTORNOT == True and TYPEPLT == "Position" or TYPEPLT == "all":
+            if PLTORNOT and TYPEPLT in ("Position", "Position3D", "all"):
                 self.X.append(self.posX)
                 self.Y.append(self.posY)
 
@@ -429,7 +430,11 @@ class Body:
             self.collideAndMerge()
         self.render(screen, TRAIL_LENGTH)
 
-
+def screenShot(screen):
+    if pygame.key.get_pressed()[pygame.K_p]:
+        filename=os.path.abspath(f"SimShot_{random.randint(1, 999)}.png")
+        pygame.image.save(screen, filename)
+        print(f"Saved to: {filename}")
 
 def SolarSystem(screen, paused=False):
     Sun.Simulate(paused, screen)
@@ -442,15 +447,21 @@ def SolarSystem(screen, paused=False):
     Saturn.Simulate(paused, screen)
     Uranus.Simulate(paused, screen)
     Neptune.Simulate(paused, screen)
+    
+    screenShot(paused)
 
 def BinaryStarSystem(screen, paused=False):
     StarA.Simulate(paused, screen)
     StarB.Simulate(paused, screen)
     X1Planet.Simulate(paused, screen)
+    
+    screenShot(paused)
 
 def elipticalOrbitSystem(screen, paused=False):
     Star1.Simulate(paused, screen)
     bodyC.Simulate(paused, screen)
+    
+    screenShot(paused)
 
 def LagrangianPointDemoSystem(screen, paused):
     #puased and screen variables are exchanged for some reason. im too exhausted to find why, but it works as it should so i really dont care
@@ -465,21 +476,29 @@ def LagrangianPointDemoSystem(screen, paused):
     Earth.Simulate(paused, screen)
     LagrangePoint4Asteroid.Simulate(paused, screen)
     LagrangePoint5Asteroid.Simulate(paused, screen)
+    
+    screenShot(paused)
 
 def ThreeBodyChaos(screen, paused=False):
     tbody1.Simulate(paused, screen)
     tbody2.Simulate(paused, screen)
     tbody3.Simulate(paused, screen)
+    
+    screenShot(paused)
 
 
 def HorseShoeCrabSystem(screen, paused=False):
     Sun.Simulate(paused, screen)
     Earth.Simulate(paused, screen)
     obj.Simulate(paused, screen)
+    
+    screenShot(paused)
 
 def SlingShot(screen, paused=False):
     ProbeA.Simulate(paused, screen)
     BigPlanetForSlingShot.Simulate(paused, screen)
+    
+    screenShot(paused)
 
 
 def Sim(System, screen):
@@ -777,6 +796,8 @@ def MAIN():
             WIDTH = int(input("Width (Default is 1200) = "))
             HEIGHT = int(input("Height (Default is 800) = "))
             print(f"Screen size is now set to {WIDTH} x {HEIGHT}. Note that smaller screen sizes may cause performance issues")
+        elif choose.lower() == "help":
+            print("HELP COMMAND \n General Commands: \n 'exit' or 'quit' - Exit the program \n 'restart' - Restart the program \n 'help' - Show this message \n 'show' - Show some of the variables and constants in the simulation \n 'set-timestep' - Set the timestep of the simulation (Default is 60 x 60 seconds)\n 'set-trail-lenght' - Set the lenght of the trails (Default is 500) \n 'set-trail' - Toggle trails on and off \n 'set-com-line' - Toggle line to center of mass on and off \n 'set-screen-size' - Set the screen size \n PLOTS \n Energy Plot: Plots the Kinetic, Potentioal and Total energy of the system with time \n Velocity Plot: Plots the velocity of the planets with time \n Center of Mass Plot: Plots the distance of the planets to the center of mass with time \n Position Plot: Plots the X and Y position of the planets with time \n Position 3D Plot: Plots the X and Y position of the planets in a 3D graph \n SIM CONTROLS \n You can pause and unpause the simulation by pressing the space bar while the simulation is running. \n You can move around space in the simulation by using the keys 't', 'f', 'g' and 'h'. You can also zoom in and out by using the keys 'w' and 's' respectively. \n PHYSICAL INFO \n The units are: Meters, Kilograms, Seconds. The default timestep is 60 x 60 seconds, which means that every second in the simulation is equal to 1 hour in real life. The default scale is 250 pixels per Astronomical Unit (AU), which means that the distance from the Sun to the Earth will be represented as 250 pixels on the screen.")
         elif choose.lower() == "restart":
             print("Restarting... ")
             script_path = os.path.abspath(__file__)

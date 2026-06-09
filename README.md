@@ -246,7 +246,7 @@ python SolarSystemSim.py
 
 ## Executable Version
 
-A standalone Windows executable is available under the GitHub Releases section.
+A standalone Windows executable is available under the GitHub Releases section (And separately in the repository too).
 
 The executable includes all required dependencies and does not require Python to be installed.
 

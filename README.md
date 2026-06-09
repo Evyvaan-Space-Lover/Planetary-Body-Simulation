@@ -1,156 +1,314 @@
 # Planetary Body Simulation
 
-A real-time N-body gravitational simulation built using Python and Pygame.
-This project models planetary motion, multi-body systems, and orbital mechanics using Verlet integration for improved stability and energy behavior.
+A real-time N-body gravitational simulator built using Python and Pygame. This project models orbital mechanics, chaotic systems, and various gravitational phenomena using Verlet Integration for improved numerical stability.
+
+Originally created as a way to explore space physics and computational simulations, the project has evolved into an interactive educational tool capable of demonstrating a wide range of celestial dynamics.
 
 ---
 
-##  Features
+## Features
 
--  Realistic planetary motion (approximate physical scaling)
--  Binary star system with orbiting planet
--  Three-body chaotic system
--  Gravitational slingshot simulation
--  Lagrange points (L4 & L5)
--  Horseshoe orbit system
--  Energy and velocity plotting (matplotlib)
--  Smooth orbital trails
--  Camera movement and zoom
+### Orbital Systems
 
----
+* Solar System Simulation
+* Binary Star System
+* Elliptical Orbit Demonstration
+* Lagrange Point (L4 & L5) System
+* Three-Body Chaotic System
+* Horseshoe Orbit System
+* Gravitational Slingshot Demonstration
 
-##  Physics & Concepts
+### Visualization Features
 
-- Newtonian Gravity
-- N-body Simulation
-- Verlet Integration
-- Orbital Mechanics
-- Energy Conservation (KE, PE, Total Energy)
-- Chaotic Systems & Sensitivity to Initial Conditions
+* Orbital trail rendering
+* Camera movement controls
+* Zoom controls
+* Screenshot functionality
+* Pause and resume functionality
 
----
+### Data Analysis and Plotting
 
-##  Controls (Simulation Window)
-
-### Key| Action
-
-SPACE| Pause / Resume simulation
-
-W / S| Zoom in / out
-
-T / G| Move camera up / down
-
-F / H| Move camera left / right
-
-R| Reset zoom
+* Energy analysis (Kinetic Energy, Potential Energy, Total Energy)
+* Velocity plotting
+* 2D trajectory plotting
+* 3D trajectory plotting using time as the third dimension
 
 ---
 
-##  Console Commands (">>>")
+## Physics Concepts Demonstrated
 
-### Run Systems
-
-1 → Solar System 
-
-2 → Binary Star System 
-
-3 → Elliptical Orbit 
-
-4 → L4 & L5 System 
-
-5 → Three Body Chaos 
-
-6 → Horseshoe Orbit 
-
-7 → Slingshot Simulation 
-
-###  General Commands
-
-exit / quit → Close program 
-
-
-restart → Restart simulation 
-
-
-show → Display system parameters 
-
-###  Settings
-
-set-timestep → Change simulation timestep 
-
-
-set-trail_length → Adjust trail length 
-
-
-set-trail → Toggle trails on/off 
+* Newtonian Gravity
+* N-body Interactions
+* Orbital Mechanics
+* Chaotic Dynamics
+* Energy Conservation
+* Numerical Integration
+* Lagrange Points
+* Gravitational Assists
+* Horseshoe Orbits
 
 ---
 
-##  Data Visualization
+## Numerical Method
 
-After running simulations, you can generate plots using matplotlib:
+The simulator uses Verlet Integration to update positions over time.
 
-- Velocity vs Time
-- Energy vs Time (KE, PE, Total)
+Compared to simpler methods such as Euler Integration, Verlet Integration offers improved long-term stability and better energy conservation for orbital simulations.
 
 ---
 
-##  Installation & Run
+## Simulation Controls
 
-Requirements
+| Key   | Action                    |
+| ----- | ------------------------- |
+| SPACE | Pause / Resume Simulation |
+| W     | Zoom In                   |
+| S     | Zoom Out                  |
+| T     | Move Camera Up            |
+| G     | Move Camera Down          |
+| F     | Move Camera Left          |
+| H     | Move Camera Right         |
+| R     | Reset Camera and Zoom     |
+| P     | Save Screenshot           |
 
-- Python 3.x
-- pygame
-- matplotlib
+---
 
-Install dependencies
+## Console Commands
 
-pip install pygame matplotlib
+### General Commands
 
-### Run the simulation
+```text
+help
+```
 
+Display the help menu.
+
+```text
+show
+```
+
+Display information about the current simulation.
+
+```text
+restart
+```
+
+Restart the application.
+
+```text
+exit
+quit
+```
+
+Close the program.
+
+---
+
+### System Selection
+
+```text
+1
+```
+
+Solar System Simulation
+
+```text
+2
+```
+
+Binary Star System
+
+```text
+3
+```
+
+Elliptical Orbit Demonstration
+
+```text
+4
+```
+
+Lagrange Point (L4 & L5) System
+
+```text
+5
+```
+
+Three-Body Chaotic System
+
+```text
+6
+```
+
+Horseshoe Orbit System
+
+```text
+7
+```
+
+Gravitational Slingshot Demonstration
+
+---
+
+### Simulation Settings
+
+```text
+set-timestep
+```
+
+Change the simulation timestep.
+
+Smaller timesteps generally improve numerical accuracy.
+
+```text
+set-trail
+```
+
+Enable or disable orbital trails.
+
+```text
+set-trail-length
+```
+
+Change the maximum trail length.
+
+(You can type the "help" command in case you wanna know any command)
+
+---
+
+### Plots
+
+```text
+Energy plot
+```
+
+Plot kinetic energy, potential energy, and total energy over time.
+
+```text
+Velocity plot
+```
+
+Plot velocity over time.
+
+```text
+Trajectory plot
+```
+
+Generate a two-dimensional trajectory plot.
+
+```text
+Trajectory with time plot
+```
+
+Generate a three-dimensional trajectory plot using:
+
+* X-axis → X Position
+* Y-axis → Y Position
+* Z-axis → Time
+
+---
+
+## Screenshots
+
+Screenshots of the simulation can be captured during runtime using the screenshot functionality.
+
+Recommended showcase systems:
+
+* Binary Star System
+* Three-Body Chaos
+* Horseshoe Orbit
+* 3D Trajectory Visualization
+
+---
+
+## Installation
+
+### Requirements
+
+* Python 3.x
+* pygame
+* matplotlib
+* numpy
+
+Install dependencies:
+
+```bash
+pip install pygame matplotlib numpy
+```
+
+Run the simulation:
+
+```bash
 python SolarSystemSim.py
+```
 
 ---
 
-##  Notes
+## Executable Version
 
-- Units are SI (meters, kilograms, seconds)
-- Timestep significantly affects accuracy
-- Large timesteps can introduce numerical errors
-- Close encounters may produce sharp energy spikes
-- Some systems (like 3-body) are inherently chaotic
+A standalone Windows executable is available under the GitHub Releases section.
+
+The executable includes all required dependencies and does not require Python to be installed.
+
+---
+
+## Notes
+
+* All quantities use SI units:
+
+  * Distance → meters (m)
+  * Mass → kilograms (kg)
+  * Time → seconds (s)
+
+* Large timesteps may introduce numerical inaccuracies.
+
+* Chaotic systems are highly sensitive to initial conditions.
+
+* This simulator is intended for educational and exploratory purposes.
 
 ---
 
 ##  Screenshots
-
-![Binary Star System](images/SimBinaryStarSys2.JPG) ![Solar System](images/SimSolarSys.JPG) ![Solar System](images/SimSolarSys2.JPG) 
-![Three Body System Velocity Plot](images/ThreeBodyEnergyPlot(Timestep=60).png)
+![Binary Star System](images/SimBinaryStarSys2.JPG) ![Solar System](images/SimSolarSys.JPG) ![Solar System](images/SimSolarSys2.JPG)  ![Three Body System Velocity Plot](images/ThreeBodyEnergyPlot(Timestep=60).png)  ---
 
 ---
 
-##  Author
+## Technical Challenges
+
+During development, the project involved solving numerous challenges, including:
+
+* Energy conservation issues
+* Timestep selection and numerical stability
+* Chaotic system behavior
+* Restart functionality bugs
+* Data collection for plotting
+* Integrating 3D trajectory visualization
+* Packaging the simulator into a standalone executable
+
+Many of these challenges required experimentation and iterative debugging, providing valuable experience in computational physics and software development.
+
+---
+
+## Future Work
+
+Potential future improvements include:
+
+* True 3D simulations
+* Adaptive timesteps
+* Additional visualization tools
+* More orbital systems
+* User interface improvements
+
+---
+
+## Author
 
 Evyvaan Singh
 
-Project started: March 2025
+All simulation code was written by the author.
+
+AI tools were used solely for assistance with documentation and README preparation.
 
 ---
 
-##  License
 
-This project is open for learning, experimentation, and modification.
-
----
-
-##  Future Improvements
-
-- Adaptive timestep
-- Improved collision handling
-- Higher-order numerical integrators
-- UI and usability enhancements
-
----
-## Note
-All the code is written by a real human. Unfortunately, this README is created by an AI as it is such a boring and uninsteresting task. (I am sorry)

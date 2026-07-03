@@ -166,7 +166,7 @@ Enable or disable orbital trails.
 set-trail-length
 
 Change the maximum trail length.
-
+```
 (These commands are still available through the CLI fallback system.)
 
 ---
@@ -192,7 +192,6 @@ Generate a three-dimensional trajectory plot using:
 * X-axis → X Position
 * Y-axis → Y Position
 * Z-axis → Time
-```
 ---
 
 Screenshots
@@ -248,12 +247,6 @@ Notes
 * Chaotic systems are highly sensitive to initial conditions.
 
 * This simulator is intended for educational and exploratory purposes.
-
----
-
-Screenshots
-
-"Binary Star System" (images/SimBinaryStarSys2.JPG) "Solar System" (images/SimSolarSys.JPG) "Solar System" (images/SimSolarSys2.JPG)  "Three Body System Velocity Plot" (images/ThreeBodyEnergyPlot(Timestep=60).png)  ---
 
 ---
 

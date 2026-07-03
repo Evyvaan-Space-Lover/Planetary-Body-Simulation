@@ -1,7 +1,12 @@
 #Fully Made by Evyvaan, with a little help from the internet for the trails, physics and data, but it works so be it
 #Project started on 17 March 2025
 
+from pygame_widgets.slider import Slider
+from pygame_widgets.textbox import TextBox
+import pygame_widgets
 import pygame
+import tkinter as tk
+from tkinter import ttk, simpledialog
 pygame.init()
 import math
 from mpl_toolkits.mplot3d import Axes3D
@@ -9,6 +14,7 @@ import matplotlib.pyplot as plt
 import os
 import sys
 import subprocess
+
 import random
 
 WIDTH, HEIGHT = 1350, 650
@@ -45,6 +51,15 @@ SHOW_ENERGY = False
 PLTVELOCITY = False
 LINE2COM = False
 
+def restart():
+    script_path = os.path.abspath(__file__)
+    
+    python = sys.executable
+    subprocess.Popen([python, script_path])
+    sys.exit()
+    print("'Bye'  -  Evyvaan said calmly")
+    print("================================================================================================================================")
+
 def removeFromList(item):
     if item in bodies:
         bodies.remove(item)
@@ -53,9 +68,7 @@ def graphCOM(bodies):
     plt.figure()
     for body in bodies:
         plt.plot(body.DISTANCECOM, label=f"{body.name} Distance to COM")
-    
     plt.legend()
-    
     plt.title("Distance to Center of Mass vs Time")
     plt.xlabel("Frames")
     plt.ylabel("Distance to COM (in meters)")
@@ -65,9 +78,7 @@ def graphVelocity(bodies):
     plt.figure()
     for body in bodies:
         plt.plot(body.VELOCITY, label=f"{body.name} Velocity")
-    
     plt.legend()
-    
     plt.title("Velocity vs Time")
     plt.xlabel("Frames")
     plt.ylabel("Velocity (in m/s)")
@@ -79,9 +90,7 @@ def graphPosition(bodies):
         x = body.X
         y = [-val for val in body.Y]
         plt.plot(x, y, label=f"{body.name} Trajectory")
-    
     plt.legend()
-    
     plt.title("Trajectory (X vs Y)")
     plt.xlabel("X Trajectory (in meters)")
     plt.ylabel("Y Trajectory (in meters)")
@@ -91,24 +100,20 @@ def graphPosition(bodies):
 def graphPosition3D(bodies):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    
     for body in bodies:
         x = body.X
         y = [-val for val in body.Y]
         time = range(len(x))
         name = body.name
-        
         ax.plot(x, y, time, label=f"{name} Path")
-    
     ax.set_title("3D Trajectory (X vs Y vs Time)")
     ax.set_xlabel("X Position (in meters)")
     ax.set_ylabel("Y Position (in meters)")
     ax.set_zlabel("Time (in seconds)")
     ax.legend()
-    
-    ax.view_init(elev=30, azim=120)  # Adjust the viewing angle as needed
-    
+    ax.view_init(elev=30, azim=120)
     plt.show()
+
 
 
 def graphEnergies(data, data1, data2):
@@ -116,9 +121,7 @@ def graphEnergies(data, data1, data2):
     plt.plot(data, label="Total Energy Of the System")
     plt.plot(data1, label="Total Kinetic Energy of the System")
     plt.plot(data2, label="Total Potential Energy of the System")
-    
     plt.legend()
-    
     plt.title("Energy vs Time")
     plt.xlabel("Frames")
     plt.ylabel("Energy (In Joules)")
@@ -191,6 +194,53 @@ def askPlotter():
             return False, None
     else:
         return False, None
+
+def askPlotterGUI():
+    root = tk.Tk()
+    root.withdraw()
+
+    options = [
+        "Velocity",
+        "Energy",
+        "COM",
+        "Position",
+        "Position3D",
+        "all"
+    ]
+    option_text = "\n".join([
+        "1 - Velocities",
+        "2 - Total energy of the system",
+        "3 - Distance to the Center of Mass",
+        "4 - Record Trajectory",
+        "5 - Record Position with Time",
+        "6 - All of the above"
+    ])
+
+    answer = simpledialog.askstring(
+        "Plotting Options",
+        f"Choose the plot type:\n{option_text}",
+        parent=root
+    )
+
+    root.destroy()
+    if not answer:
+        return False, None
+
+    answer = answer.strip()
+    if answer == "1":
+        return True, "Velocity"
+    if answer == "2":
+        return True, "Energy"
+    if answer == "3":
+        return True, "COM"
+    if answer == "4":
+        return True, "Position"
+    if answer == "5":
+        return True, "Position3D"
+    if answer == "6":
+        return True, "all"
+
+    return False, None
 
 def calcVelocity(body):
     vx = (body.posX - body.prevPosX) / TIMESTEP
@@ -287,9 +337,11 @@ class Body:
 
     def addToList(item):
         global plotBodies
-        if item.counter == 0:
+        if item not in bodies:
             bodies.append(item)
+        if item not in plotBodies:
             plotBodies.append(item)
+        if item.counter == 0:
             item.counter = 1
 
 
@@ -333,6 +385,7 @@ class Body:
             if SHOW_TRAIL:
                 for a, b in zip(self.trail, self.trail[1:]):
                     pygame.draw.aaline(screen, self.color, a, b, 2)
+
 
 
 
@@ -518,7 +571,7 @@ def Sim(System, screen):
     if System == "SlingShot":
         SlingShot(Keys[pygame.K_SPACE], screen)
 
-def mainSIM(System):
+def mainSIM(System, screen=None):
     global plotBodies
     plotBodies = []
     global SCALE1 # I have no idea why i have to do this but if i dont do this, it falls apart lmao (4/5/2026: now that i think about it, it makes sense lmao)
@@ -534,8 +587,9 @@ def mainSIM(System):
     SCALE1 = 250/AU
     CenterPosx = (WIDTH/2)
     CenterPosy = (HEIGHT/2)
-    pygame.display.set_caption("Solar System Simulation")
-    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    pygame.display.set_caption("Planetary Bodies Simulation")
+    if screen is None:
+        screen = pygame.display.set_mode((WIDTH, HEIGHT))
     running = True
     bodies.clear()
     while running:
@@ -559,7 +613,7 @@ def mainSIM(System):
             TOTAL_KE.append(KE)
             TOTAL_PE.append(PE)
         pygame.display.flip()
-    pygame.quit()
+    # Keep pygame initialized so the main menu can continue using the same display
     if SHOW_ENERGY:
         graphEnergies(TOTAL_E, TOTAL_KE, TOTAL_PE)
     if PLTORNOT == True and TYPEPLT ==  "Velocity" or TYPEPLT == "all":
@@ -651,6 +705,187 @@ chaos=[tbody1, tbody2, tbody3]
 pointdemo=[Sun, Earth, LagrangePoint4Asteroid, LagrangePoint5Asteroid]
 eliptical=[Star1, bodyC]
 binary=[StarA, StarB, X1Planet]
+
+class MenuButton():
+    def __init__(self, x, y, width, height, text, system, color=(40, 40, 40)):
+        self.rect = pygame.Rect(x, y, width, height)
+        self.text = text
+        self.system = system
+        self.font = pygame.font.Font(None, 36)
+        self.color = color
+    
+    def draw(self, screen):
+        glowRect = pygame.Rect(self.rect.x - 5, self.rect.y - 5, self.rect.width + 10, self.rect.height + 10)
+        pygame.draw.rect(screen, (100, 100, 100), glowRect, border_radius=5)
+        
+        mouse = pygame.mouse.get_pos()
+        hovered = self.rect.collidepoint(mouse)
+        
+        color = (100, 100, 100) if hovered else self.color
+        
+        pygame.draw.rect(screen, color, self.rect, border_radius=5)
+        pygame.draw.rect(screen, WHITE, self.rect, 2, border_radius=5)
+        
+        text_surface = self.font.render(self.text, True, WHITE)
+        text_rect = text_surface.get_rect(center=self.rect.center)
+        
+        screen.blit(text_surface, text_rect)
+    
+    def clicked(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if self.rect.collidepoint(event.pos):
+                return True
+        return False
+
+simulations = [
+    {"title": "Solar System",
+    "system": "SolarSystem",
+    "description": "Simulate the motion of planets in our Solar System."},
+    {"title": "Binary Star System",
+    "system": "BinarySystem",
+    "description": "Simulate the motion of two stars orbiting each other."},
+    {"title": "Eliptical Orbit System",
+    "system": "ElipticalSystem",
+    "description": "Simulate the motion of a body in an elliptical orbit."},
+    {"title": "Lagrange Points Demonstration",
+    "system": "L4 and L5",
+    "description": "Simulate the motion of asteroids at the Lagrange points."},
+    {"title": "Three Body Chaos",
+    "system": "ThreeBody",
+    "description": "Simulate the motion of three bodies interacting through gravity."},
+    {"title": "Horse Shoe Crab Orbit",
+    "system": "HorseShoe",
+    "description": "Simulate the motion of a body in a horseshoe orbit."},
+    {"title": "Gravitational Sling Shot",
+    "system": "SlingShot",
+    "description": "Simulate the motion of a body being slung around a planet."}
+]
+
+def mainMenuUwU():
+    global SHOW_TRAIL
+    global LINE2COM
+    global TIMESTEP
+    global TRAIL_LENGTH
+    global PLTORNOT, TYPEPLT
+    global SHOW_ENERGY
+    global PLTVELOCITY
+    
+    pygame.init()
+    
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    pygame.display.set_caption("Space In YOUR Place Menu")
+    clock = pygame.time.Clock()
+    running = True
+    
+    selectedSim = None
+    
+    toggleTrailButton = MenuButton(560, 180, 400, 50, "Toggle Trail", "toggleTrail")
+    
+    toggleCOMButton = MenuButton(560, 240, 400, 50, "Toggle Center of Mass Line", "toggleCOM")
+    
+    cliButton = MenuButton(560, 300, 400, 50, "Initiate CLI", "initiateCLI")
+    
+    
+    timestepSlider = Slider(screen, 560, 480, min=6, max=7200, initial=TIMESTEP, label="Time Step (seconds)", width=200, height=15)
+    trailLengthSlider = Slider(screen, 560, 520, min=0, max=1000, initial=TRAIL_LENGTH, label="Trail Length (points)", width=200, height=15)
+    
+    stars = []
+    
+    for i in range(250):
+        
+        stars.append([random.randint(0, WIDTH), random.randint(0, HEIGHT), random.randint(1, 3)])
+    
+    y = 140
+    buttons = []
+    utilityButtons = [toggleTrailButton, toggleCOMButton, cliButton]
+    for sim in simulations:
+        button = MenuButton(100, y, 400, 50, sim["title"], sim["system"])
+        buttons.append(button)
+        y += 60
+    
+    
+    while running:
+        clock.tick(60)
+        
+        screen.fill(BLACK)
+        
+        panel = pygame.Surface((480, HEIGHT - 200))
+        panel.set_alpha(180)
+        panel.fill((30, 30, 45))
+        screen.blit(panel, (540, 120))
+        
+        settingsFont = pygame.font.Font(None, 32)
+        settingsText = settingsFont.render("Settings", True, WHITE)
+        screen.blit(settingsText, (700, 130))
+        
+        infoFont = pygame.font.Font(None, 22)
+        
+        timestepText = infoFont.render(f"Time Step: {TIMESTEP:.2f} seconds", True, WHITE)
+        screen.blit(timestepText, (560, 360))
+        
+        trailLengthText = infoFont.render(f"Trail Length: {TRAIL_LENGTH} points", True, WHITE)
+        screen.blit(trailLengthText, (560, 390))
+        
+        trailStatusText = infoFont.render(f"Show Trail: {'On' if SHOW_TRAIL else 'Off'}", True, WHITE)
+        screen.blit(trailStatusText, (560, 420))
+        
+        comLineStatusText = infoFont.render(f"Show COM Line: {'On' if LINE2COM else 'Off'}", True, WHITE)
+        screen.blit(comLineStatusText, (560, 450))
+        
+        title_font = pygame.font.Font(None, 48)
+        title = title_font.render("Space In YOUR Place", True, WHITE)
+        
+        screen.blit(title, (WIDTH // 2 - title.get_width() // 2, 20))
+        
+        for star in stars:
+            pygame.draw.circle(screen, WHITE, (star[0], star[1]), star[2])
+            star[1] = star[1] + 0.5
+            star[0] = star[0] + 0.5
+            
+            if star[1] > HEIGHT:
+                star[1] = 0
+            if star[0] > WIDTH:
+                star[0] = 0
+        
+        for button in buttons:
+            button.draw(screen)
+        
+        for button in utilityButtons:
+            button.draw(screen)
+        
+        events = pygame.event.get()
+        for event in events:
+            if event.type == pygame.QUIT:
+                running = False
+            
+            for button in utilityButtons:
+                if button.clicked(event):
+                    if button.system == "toggleTrail":
+                        SHOW_TRAIL = not SHOW_TRAIL
+                    elif button.system == "toggleCOM":
+                        LINE2COM = not LINE2COM
+                    elif button.system == "initiateCLI":
+                        MAIN()
+            for button in buttons:
+                if button.clicked(event):
+                    PLTORNOT, TYPEPLT = askPlotterGUI()
+                    SHOW_ENERGY = False
+                    PLTVELOCITY = False
+                    if PLTORNOT:
+                        if TYPEPLT == "Velocity" or TYPEPLT == "all":
+                            PLTVELOCITY = True
+                        if TYPEPLT == "Energy" or TYPEPLT == "all":
+                            SHOW_ENERGY = True
+                    mainSIM(button.system, screen)
+                    if not pygame.display.get_init() or pygame.display.get_surface() is None:
+                        screen = pygame.display.set_mode((WIDTH, HEIGHT))
+                        pygame.display.set_caption("Space In YOUR Place Menu")
+        TIMESTEP = timestepSlider.getValue()
+        TRAIL_LENGTH = trailLengthSlider.getValue()
+
+        pygame_widgets.update(events)
+        pygame.display.flip()
+
 
 def MAIN():
     running = True
@@ -811,4 +1046,5 @@ def MAIN():
             print("Invalid Command")
     sys.exit()
 
-MAIN()
+# MAIN()
+mainMenuUwU()

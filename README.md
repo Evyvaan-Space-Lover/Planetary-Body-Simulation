@@ -18,6 +18,15 @@ Originally created as a way to explore space physics and computational simulatio
 * Horseshoe Orbit System
 * Gravitational Slingshot Demonstration
 
+### GUI Features
+
+* Interactive simulation launcher
+* Button-based system selection
+* Slider-based parameter controls
+* Plot-selection popup window
+* Cleaner simulation workflow
+* CLI fallback support
+
 ### Visualization Features
 
 * Orbital trail rendering
@@ -57,6 +66,17 @@ Compared to simpler methods such as Euler Integration, Verlet Integration offers
 
 ---
 
+## Simulation Workflow
+
+1. Launch the program.
+2. Select the desired simulation using the GUI menu.
+3. Adjust simulation settings using sliders/buttons.
+4. Choose desired plots from the popup window.
+5. Press START.
+6. The simulation begins.
+
+---
+
 ## Simulation Controls
 
 | Key   | Action                    |
@@ -75,140 +95,107 @@ Compared to simpler methods such as Euler Integration, Verlet Integration offers
 
 ## Console Commands
 
+Although the simulator now includes a GUI launcher system, terminal commands are still supported.
+
 ### General Commands
 
 ```text
 help
-```
 
 Display the help menu.
 
-```text
 show
-```
 
 Display information about the current simulation.
 
-```text
 restart
-```
 
 Restart the application.
 
-```text
 exit
 quit
-```
 
 Close the program.
 
 ---
 
-### System Selection
+System Selection
 
-```text
 1
-```
 
 Solar System Simulation
 
-```text
 2
-```
 
 Binary Star System
 
-```text
 3
-```
 
 Elliptical Orbit Demonstration
 
-```text
 4
-```
 
 Lagrange Point (L4 & L5) System
 
-```text
 5
-```
 
 Three-Body Chaotic System
 
-```text
 6
-```
 
 Horseshoe Orbit System
 
-```text
 7
-```
 
 Gravitational Slingshot Demonstration
 
 ---
 
-### Simulation Settings
+Simulation Settings
 
-```text
 set-timestep
-```
 
 Change the simulation timestep.
 
 Smaller timesteps generally improve numerical accuracy.
 
-```text
 set-trail
-```
 
 Enable or disable orbital trails.
 
-```text
 set-trail-length
-```
 
 Change the maximum trail length.
 
-(You can type the "help" command in case you wanna know any command)
+(These commands are still available through the CLI fallback system.)
 
 ---
 
-### Plots
+Plots
 
-```text
 Energy plot
-```
 
 Plot kinetic energy, potential energy, and total energy over time.
 
-```text
 Velocity plot
-```
 
 Plot velocity over time.
 
-```text
 Trajectory plot
-```
 
 Generate a two-dimensional trajectory plot.
 
-```text
 Trajectory with time plot
-```
 
 Generate a three-dimensional trajectory plot using:
 
 * X-axis → X Position
 * Y-axis → Y Position
 * Z-axis → Time
-
+```
 ---
 
-## Screenshots
+Screenshots
 
 Screenshots of the simulation can be captured during runtime using the screenshot functionality.
 
@@ -221,9 +208,9 @@ Recommended showcase systems:
 
 ---
 
-## Installation
+Installation
 
-### Requirements
+Requirements
 
 * Python 3.x
 * pygame
@@ -232,19 +219,15 @@ Recommended showcase systems:
 
 Install dependencies:
 
-```bash
 pip install pygame matplotlib numpy
-```
 
 Run the simulation:
 
-```bash
 python SolarSystemSim.py
-```
 
 ---
 
-## Executable Version
+Executable Version
 
 A standalone Windows executable is available under the GitHub Releases section (And separately in the repository too).
 
@@ -252,10 +235,10 @@ The executable includes all required dependencies and does not require Python to
 
 ---
 
-## Notes
+Notes
 
 * All quantities use SI units:
-
+  
   * Distance → meters (m)
   * Mass → kilograms (kg)
   * Time → seconds (s)
@@ -268,12 +251,13 @@ The executable includes all required dependencies and does not require Python to
 
 ---
 
-##  Screenshots
-![Binary Star System](images/SimBinaryStarSys2.JPG) ![Solar System](images/SimSolarSys.JPG) ![Solar System](images/SimSolarSys2.JPG)  ![Three Body System Velocity Plot](images/ThreeBodyEnergyPlot(Timestep=60).png)  ---
+Screenshots
+
+"Binary Star System" (images/SimBinaryStarSys2.JPG) "Solar System" (images/SimSolarSys.JPG) "Solar System" (images/SimSolarSys2.JPG)  "Three Body System Velocity Plot" (images/ThreeBodyEnergyPlot(Timestep=60).png)  ---
 
 ---
 
-## Technical Challenges
+Technical Challenges
 
 During development, the project involved solving numerous challenges, including:
 
@@ -283,13 +267,14 @@ During development, the project involved solving numerous challenges, including:
 * Restart functionality bugs
 * Data collection for plotting
 * Integrating 3D trajectory visualization
+* GUI integration and workflow systems
 * Packaging the simulator into a standalone executable
 
 Many of these challenges required experimentation and iterative debugging, providing valuable experience in computational physics and software development.
 
 ---
 
-## Future Work
+Future Work
 
 Potential future improvements include:
 
@@ -297,11 +282,13 @@ Potential future improvements include:
 * Adaptive timesteps
 * Additional visualization tools
 * More orbital systems
-* User interface improvements
+* Expanded GUI customization
+* Real-time plotting tools
+* Interactive body creation
 
 ---
 
-## Author
+Author
 
 Evyvaan Singh
 
@@ -310,5 +297,3 @@ All simulation code was written by the author.
 AI tools were used solely for assistance with documentation and README preparation.
 
 ---
-
-
